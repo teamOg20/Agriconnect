@@ -2,7 +2,11 @@ import { ArrowRight, MessageCircle, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import heroFarm from '@/assets/hero-farm.jpg';
 
-const HeroSection = () => {
+interface HeroSectionProps {
+  onOpenChat?: () => void;
+}
+
+const HeroSection = ({ onOpenChat }: HeroSectionProps) => {
   const scrollToSection = (href: string) => {
     const element = document.querySelector(href);
     if (element) {
@@ -58,7 +62,7 @@ const HeroSection = () => {
               </Button>
               
               <Button 
-                onClick={() => scrollToSection('#ai-chat')}
+                onClick={onOpenChat}
                 variant="outline"
                 className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
                 size="lg"

@@ -16,11 +16,25 @@ interface ChatMessage {
   timestamp: string;
 }
 
-const FloatingAIChat = () => {
+interface FloatingAIChatProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+const FloatingAIChat = ({ isOpen: externalIsOpen, onOpenChange }: FloatingAIChatProps = {}) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { session } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsOpen = (value: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(value);
+    } else {
+      setInternalIsOpen(value);
+    }
+  };
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,

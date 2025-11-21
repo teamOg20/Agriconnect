@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import HeroSection from '@/components/HeroSection';
 import ProblemSection from '@/components/ProblemSection';
@@ -11,12 +12,14 @@ import Footer from '@/components/Footer';
 import FloatingAIChat from '@/components/FloatingAIChat';
 
 const Index = () => {
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
   return (
     <div className="min-h-screen">
       <Navigation />
-      <FloatingAIChat />
+      <FloatingAIChat isOpen={isChatOpen} onOpenChange={setIsChatOpen} />
       <div id="hero">
-        <HeroSection />
+        <HeroSection onOpenChat={() => setIsChatOpen(true)} />
       </div>
       <div id="problem">
         <ProblemSection />
