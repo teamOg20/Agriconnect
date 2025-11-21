@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send, Mic, Bot, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -28,7 +28,98 @@ const FloatingAIChat = () => {
   const [newMessage, setNewMessage] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [interimTranscript, setInterimTranscript] = useState('');
   const { addToCart, cart, orders } = useAppContext();
+  const recognitionRef = useRef<any>(null);
+
+  // Initialize Speech Recognition
+  useEffect(() => {
+    // Check browser compatibility
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+      console.warn('Speech Recognition not supported in this browser');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    // Handle speech recognition results
+    recognition.onresult = (event: any) => {
+      let interim = '';
+      let final = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          final += transcript;
+        } else {
+          interim += transcript;
+        }
+      }
+
+      setInterimTranscript(interim);
+
+      if (final) {
+        setNewMessage(final);
+        setInterimTranscript('');
+        // Auto-submit after a short delay
+        setTimeout(() => {
+          setIsListening(false);
+          // Trigger send message
+          const sendButton = document.querySelector('[data-send-message]') as HTMLButtonElement;
+          if (sendButton) sendButton.click();
+        }, 500);
+      }
+    };
+
+    // Handle errors
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+      setInterimTranscript('');
+
+      let errorMessage = 'Voice recognition failed. Please try again.';
+
+      switch (event.error) {
+        case 'not-allowed':
+          errorMessage = 'Microphone access denied. Please enable microphone permissions in your browser settings.';
+          break;
+        case 'no-speech':
+          errorMessage = 'No speech detected. Please try again.';
+          break;
+        case 'network':
+          errorMessage = 'Network error. Please check your connection.';
+          break;
+        case 'aborted':
+          errorMessage = 'Speech recognition aborted.';
+          break;
+      }
+
+      toast({
+        title: "Voice Input Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    };
+
+    // Handle recognition end
+    recognition.onend = () => {
+      setIsListening(false);
+      setInterimTranscript('');
+    };
+
+    recognitionRef.current = recognition;
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [toast]);
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || isLoading) return;
@@ -109,12 +200,35 @@ const FloatingAIChat = () => {
   };
 
   const toggleVoice = () => {
-    setIsListening(!isListening);
-    if (!isListening) {
-      setTimeout(() => {
-        setIsListening(false);
-        setNewMessage("What are today's tomato prices?");
-      }, 2000);
+    if (!recognitionRef.current) {
+      toast({
+        title: "Not Supported",
+        description: "Speech recognition is not supported in your browser. Please try Chrome, Edge, or Safari.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+      setInterimTranscript('');
+    } else {
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+        toast({
+          title: "Listening",
+          description: "Speak now... I'm listening to your question.",
+        });
+      } catch (error) {
+        console.error('Error starting recognition:', error);
+        toast({
+          title: "Error",
+          description: "Failed to start voice recognition. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -239,6 +353,7 @@ const FloatingAIChat = () => {
               onClick={handleSendMessage}
               disabled={!newMessage.trim() || isLoading}
               className="btn-hero px-4"
+              data-send-message
             >
               {isLoading ? (
                 <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
@@ -249,9 +364,16 @@ const FloatingAIChat = () => {
           </div>
           
           {isListening && (
-            <div className="flex items-center justify-center mt-2 text-red-600">
-              <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse mr-2"></div>
-              <span className="text-sm">Listening...</span>
+            <div className="mt-2 space-y-1">
+              <div className="flex items-center justify-center text-red-600">
+                <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse mr-2"></div>
+                <span className="text-sm font-medium">Listening...</span>
+              </div>
+              {interimTranscript && (
+                <div className="text-xs text-gray-500 text-center italic">
+                  "{interimTranscript}"
+                </div>
+              )}
             </div>
           )}
         </div>
