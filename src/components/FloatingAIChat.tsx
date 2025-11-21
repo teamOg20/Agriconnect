@@ -285,11 +285,10 @@ const FloatingAIChat = ({ isOpen: externalIsOpen, onOpenChange }: FloatingAIChat
       <div className="fixed bottom-6 right-6 z-50">
         <Button
           onClick={() => setIsOpen(true)}
-          className="w-16 h-16 rounded-full btn-hero shadow-2xl hover:scale-110 transition-all duration-300 animate-pulse"
+          className="w-16 h-16 rounded-full btn-hero shadow-2xl hover:scale-110 transition-all duration-300"
         >
           <MessageCircle className="w-8 h-8" />
         </Button>
-        <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-500 rounded-full animate-ping"></div>
       </div>
     );
   }
