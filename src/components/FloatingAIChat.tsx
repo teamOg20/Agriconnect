@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useAppContext } from '@/context/AppContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface ChatMessage {
   id: number;
@@ -13,31 +15,23 @@ interface ChatMessage {
 }
 
 const FloatingAIChat = () => {
+  const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
       type: 'bot',
-      message: 'Hello! I\'m your AgriConnect AI assistant. I can help you find crops, track orders, get farming advice, and much more. How can I help you today?',
+      message: 'Hello! I\'m your AgriConnect AI assistant powered by Gemini 2.5 Flash. I have access to our complete database and can help you with products, orders, farming advice, and much more. How can I help you today?',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
   const [newMessage, setNewMessage] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { addToCart, cart, orders } = useAppContext();
 
-  const predefinedResponses = [
-    "I can help you add items to cart, check crop prices, track your orders, or provide farming advice.",
-    "Current market prices: Tomatoes ₹25/kg, Rice ₹45/kg, Onions ₹18/kg. Would you like to add any to your cart?",
-    `You have ${cart.length} items in your cart worth ₹${cart.reduce((sum, item) => sum + item.price * item.quantity, 0)}.`,
-    `You have ${orders.length} orders. Your latest order ${orders[0]?.id || 'N/A'} is ${orders[0]?.status || 'processing'}.`,
-    "For tomato farming: Plant in well-drained soil, water regularly, and harvest when fruits turn red. Need specific advice?",
-    "Weather looks good for farming this week. Temperature 25-30°C, 70% humidity. Perfect for most crops!",
-    "I've added the item to your cart! You can view your cart and checkout anytime. Anything else I can help with?",
-  ];
-
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || isLoading) return;
 
     const userMessage: ChatMessage = {
       id: messages.length + 1,
@@ -47,32 +41,71 @@ const FloatingAIChat = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    setNewMessage('');
+    setIsLoading(true);
 
-    // Simulate AI processing and response
-    setTimeout(() => {
-      let response = predefinedResponses[Math.floor(Math.random() * predefinedResponses.length)];
-      
-      // Smart responses based on user input
-      if (newMessage.toLowerCase().includes('cart')) {
-        response = `You have ${cart.length} items in your cart worth ₹${cart.reduce((sum, item) => sum + item.price * item.quantity, 0)}. Would you like to proceed to checkout?`;
-      } else if (newMessage.toLowerCase().includes('order')) {
-        response = `You have ${orders.length} orders. Your latest order is ${orders[0]?.status || 'processing'}. Need tracking details?`;
-      } else if (newMessage.toLowerCase().includes('price')) {
-        response = "Current market prices: Tomatoes ₹25/kg, Rice ₹45/kg, Onions ₹18/kg, Wheat ₹35/kg. Need specific crop prices?";
-      } else if (newMessage.toLowerCase().includes('tomato')) {
-        response = "Fresh tomatoes available at ₹25/kg from Punjab. High quality, organic. Would you like me to add some to your cart?";
+    try {
+      // Prepare conversation history for Gemini
+      const conversationHistory = [...messages, userMessage].map(msg => ({
+        role: msg.type === 'user' ? 'user' : 'assistant',
+        content: msg.message
+      }));
+
+      console.log('Sending message to Gemini API...');
+
+      // Call the Gemini edge function
+      const { data, error } = await supabase.functions.invoke('chat-with-gemini', {
+        body: { messages: conversationHistory }
+      });
+
+      if (error) {
+        console.error('Error calling chat function:', error);
+        throw new Error(error.message || 'Failed to get response from AI');
       }
+
+      if (!data || !data.message) {
+        console.error('Invalid response from chat function:', data);
+        throw new Error('Invalid response from AI');
+      }
+
+      console.log('Received response from Gemini API');
 
       const botMessage: ChatMessage = {
         id: messages.length + 2,
         type: 'bot',
-        message: response,
+        message: data.message,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
-      setMessages(prev => [...prev, botMessage]);
-    }, 1000);
 
-    setNewMessage('');
+      setMessages(prev => [...prev, botMessage]);
+    } catch (error: any) {
+      console.error('Error in chat:', error);
+
+      let errorMessage = 'Sorry, I encountered an error. Please try again.';
+
+      if (error.message?.includes('busy')) {
+        errorMessage = 'I\'m currently experiencing high demand. Please try again in a moment.';
+      } else if (error.message?.includes('configured')) {
+        errorMessage = 'The AI service is not properly configured. Please contact support.';
+      }
+
+      const errorBotMessage: ChatMessage = {
+        id: messages.length + 2,
+        type: 'bot',
+        message: errorMessage,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      setMessages(prev => [...prev, errorBotMessage]);
+
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggleVoice = () => {
@@ -204,10 +237,14 @@ const FloatingAIChat = () => {
             
             <Button
               onClick={handleSendMessage}
-              disabled={!newMessage.trim()}
+              disabled={!newMessage.trim() || isLoading}
               className="btn-hero px-4"
             >
-              <Send className="w-4 h-4" />
+              {isLoading ? (
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
             </Button>
           </div>
           
