@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Sprout, Briefcase } from 'lucide-react';
+import { Sprout, Briefcase, Home } from 'lucide-react';
 
 const UserType = () => {
   const navigate = useNavigate();
@@ -20,6 +20,13 @@ const UserType = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
+          <Link
+            to="/"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4"
+          >
+            <Home className="w-4 h-4 mr-1" />
+            Back to Home
+          </Link>
           <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             Welcome! Please Choose Your Role
           </h1>
