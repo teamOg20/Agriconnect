@@ -1,4 +1,4 @@
-import { Users, Target, Heart, Award, Mail, Phone, MapPin, Send } from 'lucide-react';
+import { Target, Heart, Award, Mail, Phone, MapPin, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -79,41 +79,6 @@ const About = () => {
             </div>
           </div>
 
-          {/* Team */}
-          <div className="mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Meet Our Team</h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              <Card className="card-field p-6 text-center">
-                <div className="text-6xl mb-4">👨‍💼</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Rajesh Kumar</h3>
-                <p className="text-green-600 font-medium mb-3">Founder & CEO</p>
-                <p className="text-gray-600 text-sm">
-                  Former tech executive with 15 years in agriculture technology. 
-                  Passionate about empowering farmers through technology.
-                </p>
-              </Card>
-
-              <Card className="card-field p-6 text-center">
-                <div className="text-6xl mb-4">👩‍💻</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Priya Sharma</h3>
-                <p className="text-blue-600 font-medium mb-3">CTO</p>
-                <p className="text-gray-600 text-sm">
-                  AI and machine learning expert. Leads our technology initiatives 
-                  and AI-powered farming solutions.
-                </p>
-              </Card>
-
-              <Card className="card-field p-6 text-center">
-                <div className="text-6xl mb-4">👨‍🌾</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Amit Singh</h3>
-                <p className="text-purple-600 font-medium mb-3">Head of Farmer Relations</p>
-                <p className="text-gray-600 text-sm">
-                  Agricultural scientist with deep knowledge of farming practices. 
-                  Ensures our platform meets farmers' real needs.
-                </p>
-              </Card>
-            </div>
-          </div>
 
           {/* Impact Stats */}
           <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl p-8 mb-16 text-white">
