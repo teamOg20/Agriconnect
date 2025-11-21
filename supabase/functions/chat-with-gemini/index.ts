@@ -353,8 +353,8 @@ INSTRUCTIONS:
     }).filter(Boolean);
     let navigationAction = null;
 
-    // Main conversation loop to handle tool calls
-    for (let iteration = 0; iteration < 5; iteration++) {
+    // Main conversation loop to handle tool calls (increased limit for complex queries)
+    for (let iteration = 0; iteration < 15; iteration++) {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`, {
         method: 'POST',
         headers: {
@@ -398,7 +398,17 @@ INSTRUCTIONS:
 
       const part = candidate.content?.parts?.[0];
       if (!part) {
-        console.error('No parts in response');
+        console.error('No parts in response, iteration:', iteration);
+        // If we got an empty response early in the loop, it might be an API issue
+        if (iteration === 0) {
+          return new Response(
+            JSON.stringify({ 
+              error: 'Unable to process your request. Please try rephrasing your question.' 
+            }), 
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        // Otherwise, return the last successful response if any
         break;
       }
 
