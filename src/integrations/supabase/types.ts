@@ -232,25 +232,37 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          field_size: string | null
           full_name: string
           id: string
+          location: string | null
+          major_crops: string[] | null
           phone: string
+          soil_type: string | null
           user_type: string
         }
         Insert: {
           created_at?: string
           email: string
+          field_size?: string | null
           full_name: string
           id: string
+          location?: string | null
+          major_crops?: string[] | null
           phone: string
+          soil_type?: string | null
           user_type: string
         }
         Update: {
           created_at?: string
           email?: string
+          field_size?: string | null
           full_name?: string
           id?: string
+          location?: string | null
+          major_crops?: string[] | null
           phone?: string
+          soil_type?: string | null
           user_type?: string
         }
         Relationships: []

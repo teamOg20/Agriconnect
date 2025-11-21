@@ -144,7 +144,22 @@ const Marketplace = () => {
                 <div className="p-6">
                   {/* Product Header */}
                   <div className="flex items-start justify-between mb-4">
-                    <div className="text-4xl">{product.image}</div>
+                    <div className="w-16 h-16 flex items-center justify-center">
+                      {product.image && (product.image.startsWith('http://') || product.image.startsWith('https://')) ? (
+                        <img 
+                          src={product.image} 
+                          alt={product.name}
+                          className="w-full h-full object-cover rounded-lg"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.parentElement!.innerHTML = '🌾';
+                            e.currentTarget.parentElement!.classList.add('text-4xl');
+                          }}
+                        />
+                      ) : (
+                        <span className="text-4xl">{product.image || '🌾'}</span>
+                      )}
+                    </div>
                     <Badge variant="default" className="bg-green-100 text-green-700">
                       In Stock
                     </Badge>
