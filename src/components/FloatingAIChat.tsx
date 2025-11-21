@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useAppContext } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -18,12 +19,13 @@ interface ChatMessage {
 const FloatingAIChat = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { session } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
       type: 'bot',
-      message: 'Hello! I\'m your AgriConnect AI assistant powered by Gemini 2.5 Flash. I have access to our complete database and can help you with products, orders, navigation, and much more. Try saying "Show me tomato prices" or "Take me to marketplace"!',
+      message: 'Hello! I\'m your AgriConnect AI assistant powered by Gemini 2.5 Flash. I can help you with:\n\n• Product prices and availability\n• Your orders and tracking\n• Your shopping cart\n• Navigation to different sections\n\nTry asking "Show me tomato prices", "Check my cart", "Track my orders", or "Take me to marketplace"!',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -146,9 +148,12 @@ const FloatingAIChat = () => {
 
       console.log('Sending message to Gemini API...');
 
-      // Call the Gemini edge function
+      // Call the Gemini edge function with auth header if user is logged in
       const { data, error } = await supabase.functions.invoke('chat-with-gemini', {
-        body: { messages: conversationHistory }
+        body: { messages: conversationHistory },
+        headers: session?.access_token ? {
+          Authorization: `Bearer ${session.access_token}`
+        } : undefined
       });
 
       if (error) {

@@ -31,12 +31,23 @@ serve(async (req) => {
       );
     }
 
-    // Initialize Supabase client for database access
+    // Get authorization header for user-specific queries
+    const authHeader = req.headers.get('authorization');
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    // Create user-specific client if authenticated
+    const supabase = authHeader 
+      ? createClient(supabaseUrl, supabaseAnonKey, {
+          global: { headers: { Authorization: authHeader } }
+        })
+      : createClient(supabaseUrl, supabaseAnonKey);
 
-    console.log('Processing chat request with', messages.length, 'messages');
+    // Get current user if authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    const isAuthenticated = !!user;
+
+    console.log('Processing chat request with', messages.length, 'messages', isAuthenticated ? '(authenticated)' : '(guest)');
 
     // Define tools for database access and navigation (Gemini format)
     const tools = [
@@ -65,19 +76,27 @@ serve(async (req) => {
           },
           {
             name: "query_orders",
-            description: "Query orders table to get order information, status, and customer details",
+            description: "Query the authenticated user's orders to get order information, status, and delivery details. Only works for logged-in users.",
             parameters: {
               type: "OBJECT",
               properties: {
-                customer_id: {
-                  type: "STRING",
-                  description: "Filter by customer ID"
-                },
                 status: {
                   type: "STRING",
-                  description: "Filter by order status"
+                  description: "Filter by order status (e.g., pending, completed, cancelled)"
+                },
+                limit: {
+                  type: "NUMBER",
+                  description: "Maximum number of orders to return (default: 10)"
                 }
               }
+            }
+          },
+          {
+            name: "query_cart",
+            description: "Query the authenticated user's shopping cart to see items they've added. Only works for logged-in users.",
+            parameters: {
+              type: "OBJECT",
+              properties: {}
             }
           },
           {
@@ -131,24 +150,31 @@ serve(async (req) => {
 
 DATABASE TABLES:
 - products: Contains agricultural products with name, price, category, vendor, stock_quantity (ordered by most recent)
-- orders: Contains order information with customer details, status, delivery address
+- orders: Contains user's order history with tracking, status, and delivery information
+- cart: Contains user's current shopping cart items
 - users: Contains user profiles with name, email, phone, user_type
 - profiles: Contains additional user profile information
+
+USER AUTHENTICATION:
+- The user is ${isAuthenticated ? 'LOGGED IN' : 'NOT logged in (guest)'}
+- ${isAuthenticated ? 'You can query their orders and cart' : 'Orders and cart queries require login - suggest they sign in'}
 
 NAVIGATION CAPABILITIES:
 - You can navigate users to different pages: home (/), marketplace, dashboard, orders, about, vendors, fertilizer-friend
 - You can scroll to sections on the home page: hero, problem, solution, features, marketplace, fertilizer, pricing, footer
 
 INSTRUCTIONS:
-- Use database query tools when users ask about products, prices, orders, or statistics
+- Use database query tools when users ask about products, prices, orders, cart, or statistics
+- For orders and cart queries: Only query if user is authenticated, otherwise politely ask them to sign in
 - All product queries return the most recent items first
 - When no products match a search, be helpful: suggest viewing available products or navigating to the marketplace
 - If available_products are provided in tool results, mention some of them as alternatives
-- Use navigation tools when users want to go to a specific page or section (e.g., "take me to marketplace", "show me pricing")
+- Use navigation tools when users want to go to a specific page or section (e.g., "take me to marketplace", "show me orders")
 - Always be helpful, conversational, and provide accurate information based on REAL database results
 - When navigating, confirm the action (e.g., "Taking you to the marketplace now!")
-- Understand voice commands naturally (e.g., "tomato prices" = query products for tomatoes)
-- Never make up product information - only use data from actual database queries`;
+- Understand voice commands naturally (e.g., "tomato prices" = query products for tomatoes, "my orders" = query orders, "check cart" = query cart)
+- NEVER make up or hallucinate data - only use actual database query results
+- If a query returns no data, clearly state that and offer alternatives or navigation options`;
 
     // Convert messages to Gemini format
     const contents = messages.map((msg: any) => {
@@ -268,17 +294,38 @@ INSTRUCTIONS:
             }
             
             case 'query_orders': {
-              let query = supabase.from('orders').select('*');
-              
-              if (args?.customer_id) {
-                query = query.eq('customer_id', args.customer_id);
+              // Check if user is authenticated
+              if (!isAuthenticated) {
+                result = { 
+                  error: 'Authentication required',
+                  message: 'Please sign in to view your orders',
+                  suggestion: 'navigate_to_signin'
+                };
+                break;
               }
+
+              // Query only the authenticated user's orders
+              let query = supabase
+                .from('orders')
+                .select(`
+                  *,
+                  order_items(
+                    id,
+                    product_name,
+                    quantity,
+                    unit_price,
+                    total_price
+                  )
+                `)
+                .eq('customer_id', user.id)
+                .order('created_at', { ascending: false });
               
               if (args?.status) {
                 query = query.eq('status', args.status);
               }
               
-              query = query.limit(10);
+              const limit = args?.limit || 10;
+              query = query.limit(limit);
               
               const { data: orders, error } = await query;
               
@@ -286,7 +333,65 @@ INSTRUCTIONS:
                 console.error('Database error:', error);
                 result = { error: 'Failed to query orders', details: error.message };
               } else {
-                result = { orders, count: orders?.length || 0 };
+                result = { 
+                  orders, 
+                  count: orders?.length || 0,
+                  message: orders?.length === 0 ? 'No orders found' : undefined
+                };
+              }
+              break;
+            }
+
+            case 'query_cart': {
+              // Check if user is authenticated
+              if (!isAuthenticated) {
+                result = { 
+                  error: 'Authentication required',
+                  message: 'Please sign in to view your cart',
+                  suggestion: 'navigate_to_signin'
+                };
+                break;
+              }
+
+              // Query the user's cart with product details
+              const { data: cartItems, error } = await supabase
+                .from('cart')
+                .select(`
+                  id,
+                  quantity,
+                  created_at,
+                  products(
+                    id,
+                    name,
+                    price,
+                    unit,
+                    image,
+                    category,
+                    vendor,
+                    stock_quantity
+                  )
+                `)
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+              
+              if (error) {
+                console.error('Database error:', error);
+                result = { error: 'Failed to query cart', details: error.message };
+              } else {
+                const totalItems = cartItems?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+                const totalPrice = cartItems?.reduce((sum, item) => {
+                  const product = Array.isArray(item.products) ? item.products[0] : item.products;
+                  const price = product?.price || 0;
+                  return sum + (price * item.quantity);
+                }, 0) || 0;
+
+                result = { 
+                  cart_items: cartItems || [],
+                  count: cartItems?.length || 0,
+                  total_items: totalItems,
+                  total_price: totalPrice,
+                  message: cartItems?.length === 0 ? 'Your cart is empty' : undefined
+                };
               }
               break;
             }
