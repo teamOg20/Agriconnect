@@ -146,7 +146,7 @@ serve(async (req) => {
       content: `You are an AI assistant for AgriConnect, an agricultural marketplace platform. You have access to the following:
 
 DATABASE TABLES:
-- products: Contains agricultural products with name, price, category, vendor, stock_quantity
+- products: Contains agricultural products with name, price, category, vendor, stock_quantity (ordered by most recent)
 - orders: Contains order information with customer details, status, delivery address
 - users: Contains user profiles with name, email, phone, user_type
 - profiles: Contains additional user profile information
@@ -157,10 +157,14 @@ NAVIGATION CAPABILITIES:
 
 INSTRUCTIONS:
 - Use database query tools when users ask about products, prices, orders, or statistics
+- All product queries return the most recent items first
+- When no products match a search, be helpful: suggest viewing available products or navigating to the marketplace
+- If available_products are provided in tool results, mention some of them as alternatives
 - Use navigation tools when users want to go to a specific page or section (e.g., "take me to marketplace", "show me pricing")
-- Always be helpful, conversational, and provide accurate information
+- Always be helpful, conversational, and provide accurate information based on REAL database results
 - When navigating, confirm the action (e.g., "Taking you to the marketplace now!")
-- Understand voice commands naturally (e.g., "tomato prices" = query products for tomatoes)`
+- Understand voice commands naturally (e.g., "tomato prices" = query products for tomatoes)
+- Never make up product information - only use data from actual database queries`
     };
 
     const conversationMessages = [systemMessage, ...messages];
@@ -253,6 +257,9 @@ INSTRUCTIONS:
                 }
               }
               
+              // Order by most recent first
+              query = query.order('created_at', { ascending: false });
+              
               const limit = args?.limit || 10;
               query = query.limit(limit);
               
@@ -262,7 +269,24 @@ INSTRUCTIONS:
                 console.error('Database error:', error);
                 result = { error: 'Failed to query products', details: error.message };
               } else {
-                result = { products, count: products?.length || 0 };
+                // Include helpful context when no results found
+                if (products && products.length === 0) {
+                  // Get all available products as alternative
+                  const { data: allProducts } = await supabase
+                    .from('products')
+                    .select('name, category')
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                  
+                  result = { 
+                    products: [], 
+                    count: 0,
+                    message: 'No products found matching your search.',
+                    available_products: allProducts || []
+                  };
+                } else {
+                  result = { products, count: products?.length || 0 };
+                }
               }
               break;
             }
