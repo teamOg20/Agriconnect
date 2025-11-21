@@ -22,9 +22,9 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY not configured');
+    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
+    if (!GOOGLE_GEMINI_API_KEY) {
+      console.error('GOOGLE_GEMINI_API_KEY not configured');
       return new Response(
         JSON.stringify({ error: 'AI service not configured. Please contact support.' }), 
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -38,112 +38,96 @@ serve(async (req) => {
 
     console.log('Processing chat request with', messages.length, 'messages');
 
-    // Define tools for database access and navigation (OpenAI format)
+    // Define tools for database access and navigation (Gemini format)
     const tools = [
       {
-        type: "function",
-        function: {
-          name: "query_products",
-          description: "Query the products table to get information about available products, their prices, categories, and stock",
-          parameters: {
-            type: "object",
-            properties: {
-              filters: {
-                type: "object",
-                description: "Filters to apply (e.g., category, name contains)",
-                properties: {
-                  category: { type: "string" },
-                  name: { type: "string" }
+        functionDeclarations: [
+          {
+            name: "query_products",
+            description: "Query the products table to get information about available products, their prices, categories, and stock",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                filters: {
+                  type: "OBJECT",
+                  description: "Filters to apply (e.g., category, name contains)",
+                  properties: {
+                    category: { type: "STRING" },
+                    name: { type: "STRING" }
+                  }
+                },
+                limit: {
+                  type: "NUMBER",
+                  description: "Maximum number of results to return"
+                }
+              }
+            }
+          },
+          {
+            name: "query_orders",
+            description: "Query orders table to get order information, status, and customer details",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                customer_id: {
+                  type: "STRING",
+                  description: "Filter by customer ID"
+                },
+                status: {
+                  type: "STRING",
+                  description: "Filter by order status"
+                }
+              }
+            }
+          },
+          {
+            name: "count_records",
+            description: "Count records in any table (products, orders, users, profiles)",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                table: {
+                  type: "STRING",
+                  description: "Table to count records from (products, orders, users, profiles)"
                 }
               },
-              limit: {
-                type: "number",
-                description: "Maximum number of results to return"
-              }
+              required: ["table"]
             }
-          }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "query_orders",
-          description: "Query orders table to get order information, status, and customer details",
-          parameters: {
-            type: "object",
-            properties: {
-              customer_id: {
-                type: "string",
-                description: "Filter by customer ID"
+          },
+          {
+            name: "navigate_to_page",
+            description: "Navigate to a different page on the website. Use this when user wants to go to marketplace, dashboard, orders, etc.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                page: {
+                  type: "STRING",
+                  description: "The page route to navigate to (/, /marketplace, /dashboard, /orders, /about, /vendors, /fertilizer-friend)"
+                }
               },
-              status: {
-                type: "string",
-                description: "Filter by order status"
-              }
+              required: ["page"]
+            }
+          },
+          {
+            name: "scroll_to_section",
+            description: "Scroll to a specific section on the current page. Use for hero, features, pricing, problem, solution sections.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                section: {
+                  type: "STRING",
+                  description: "The section to scroll to (hero, problem, solution, features, marketplace, fertilizer, pricing, footer)"
+                }
+              },
+              required: ["section"]
             }
           }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "count_records",
-          description: "Count records in any table (products, orders, users, profiles)",
-          parameters: {
-            type: "object",
-            properties: {
-              table: {
-                type: "string",
-                enum: ["products", "orders", "users", "profiles"],
-                description: "Table to count records from"
-              }
-            },
-            required: ["table"]
-          }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "navigate_to_page",
-          description: "Navigate to a different page on the website. Use this when user wants to go to marketplace, dashboard, orders, etc.",
-          parameters: {
-            type: "object",
-            properties: {
-              page: {
-                type: "string",
-                enum: ["/", "/marketplace", "/dashboard", "/orders", "/about", "/vendors", "/fertilizer-friend"],
-                description: "The page route to navigate to"
-              }
-            },
-            required: ["page"]
-          }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "scroll_to_section",
-          description: "Scroll to a specific section on the current page. Use for hero, features, pricing, problem, solution sections.",
-          parameters: {
-            type: "object",
-            properties: {
-              section: {
-                type: "string",
-                enum: ["hero", "problem", "solution", "features", "marketplace", "fertilizer", "pricing", "footer"],
-                description: "The section to scroll to"
-              }
-            },
-            required: ["section"]
-          }
-        }
+        ]
       }
     ];
 
-    // Prepare messages for Lovable AI (OpenAI format)
-    const systemMessage = {
-      role: 'system',
-      content: `You are an AI assistant for AgriConnect, an agricultural marketplace platform. You have access to the following:
+    // Prepare messages for Gemini API
+    const systemInstruction = `You are an AI assistant for AgriConnect, an agricultural marketplace platform. You have access to the following:
 
 DATABASE TABLES:
 - products: Contains agricultural products with name, price, category, vendor, stock_quantity (ordered by most recent)
@@ -164,43 +148,44 @@ INSTRUCTIONS:
 - Always be helpful, conversational, and provide accurate information based on REAL database results
 - When navigating, confirm the action (e.g., "Taking you to the marketplace now!")
 - Understand voice commands naturally (e.g., "tomato prices" = query products for tomatoes)
-- Never make up product information - only use data from actual database queries`
-    };
+- Never make up product information - only use data from actual database queries`;
 
-    const conversationMessages = [systemMessage, ...messages];
+    // Convert messages to Gemini format
+    const contents = messages.map((msg: any) => {
+      if (msg.role === 'user') {
+        return { role: 'user', parts: [{ text: msg.content }] };
+      } else if (msg.role === 'assistant') {
+        return { role: 'model', parts: [{ text: msg.content }] };
+      }
+      return null;
+    }).filter(Boolean);
     let navigationAction = null;
 
     // Main conversation loop to handle tool calls
     for (let iteration = 0; iteration < 5; iteration++) {
-      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_GEMINI_API_KEY}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages: conversationMessages,
+          systemInstruction: { parts: [{ text: systemInstruction }] },
+          contents: contents,
           tools: tools,
-          temperature: 0.7,
+          generationConfig: {
+            temperature: 0.7,
+          }
         })
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Lovable AI error:', response.status, errorText);
+        console.error('Google Gemini API error:', response.status, errorText);
         
         if (response.status === 429) {
           return new Response(
             JSON.stringify({ error: 'AI service is currently busy. Please try again in a moment.' }), 
             { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        
-        if (response.status === 402) {
-          return new Response(
-            JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }), 
-            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
         
@@ -211,40 +196,31 @@ INSTRUCTIONS:
       }
 
       const data = await response.json();
-      console.log('Lovable AI response:', JSON.stringify(data, null, 2));
+      console.log('Google Gemini API response:', JSON.stringify(data, null, 2));
 
-      const choice = data.choices?.[0];
-      if (!choice) {
-        console.error('No choice in response');
+      const candidate = data.candidates?.[0];
+      if (!candidate) {
+        console.error('No candidate in response');
         break;
       }
 
-      const message = choice.message;
-      conversationMessages.push(message);
-
-      // Check if there are tool calls
-      if (!message.tool_calls || message.tool_calls.length === 0) {
-        // No more tool calls, return final response
-        return new Response(
-          JSON.stringify({ 
-            message: message.content,
-            navigation: navigationAction
-          }), 
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+      const part = candidate.content?.parts?.[0];
+      if (!part) {
+        console.error('No parts in response');
+        break;
       }
 
-      // Execute tool calls
-      const toolResults = [];
-      
-      for (const toolCall of message.tool_calls) {
-        console.log('Executing tool:', toolCall.function.name, 'with args:', toolCall.function.arguments);
+      // Check if there are function calls
+      if (part.functionCall) {
+        const functionCall = part.functionCall;
+
+        console.log('Executing function:', functionCall.name, 'with args:', JSON.stringify(functionCall.args));
         
         let result;
-        const args = JSON.parse(toolCall.function.arguments);
+        const args = functionCall.args;
         
         try {
-          switch (toolCall.function.name) {
+          switch (functionCall.name) {
             case 'query_products': {
               let query = supabase.from('products').select('*');
               
@@ -368,15 +344,34 @@ INSTRUCTIONS:
           };
         }
         
-        toolResults.push({
-          role: 'tool',
-          tool_call_id: toolCall.id,
-          content: JSON.stringify(result)
+        // Add function response to contents for next iteration
+        contents.push({
+          role: 'model',
+          parts: [{ functionCall: functionCall } as any]
         });
+        
+        contents.push({
+          role: 'user',
+          parts: [{
+            functionResponse: {
+              name: functionCall.name,
+              response: result
+            }
+          } as any]
+        });
+      } else if (part.text) {
+        // No more function calls, return final response
+        return new Response(
+          JSON.stringify({ 
+            message: part.text,
+            navigation: navigationAction
+          }), 
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } else {
+        console.error('Unexpected response format');
+        break;
       }
-
-      // Add tool results to conversation
-      conversationMessages.push(...toolResults);
     }
 
     return new Response(
