@@ -49,85 +49,387 @@ serve(async (req) => {
 
     console.log('Processing chat with', messages.length, 'messages', isAuthenticated ? '(authenticated)' : '(guest)');
 
-    // System instruction for general-purpose AI with agricultural expertise
+    // Define tools for real-time data access
+    const tools = [
+      {
+        type: "function",
+        function: {
+          name: "get_weather",
+          description: "Get real-time weather information for any location including temperature, conditions, humidity, wind speed, and forecast.",
+          parameters: {
+            type: "object",
+            properties: {
+              location: {
+                type: "string",
+                description: "City name or location (e.g., 'Delhi', 'Mumbai', 'New York')"
+              }
+            },
+            required: ["location"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "search_market_prices",
+          description: "Search for current market prices, commodity rates, agricultural product prices, stock prices, or any market-related information in real-time.",
+          parameters: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "What to search for (e.g., 'wheat price today', 'gold rate', 'tomato market price', 'Bitcoin price')"
+              }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "web_search",
+          description: "Search the web for current information, news, facts, or any real-time data. Use this for questions about recent events, current data, or information not in your training.",
+          parameters: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "Search query (e.g., 'latest news India', 'current inflation rate', 'who won the match today')"
+              }
+            },
+            required: ["query"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "query_products",
+          description: "Search products in the AgriConnect marketplace database.",
+          parameters: {
+            type: "object",
+            properties: {
+              search_term: {
+                type: "string",
+                description: "Product name or category to search for"
+              },
+              limit: {
+                type: "number",
+                description: "Maximum number of results (default: 10)"
+              }
+            }
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "query_orders",
+          description: "Get user's order information. Requires user to be logged in.",
+          parameters: {
+            type: "object",
+            properties: {
+              status: {
+                type: "string",
+                description: "Filter by order status"
+              }
+            }
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "navigate_to",
+          description: "Navigate user to a specific page on the website.",
+          parameters: {
+            type: "object",
+            properties: {
+              route: {
+                type: "string",
+                description: "Page route (e.g., '/marketplace', '/dashboard', '/orders')"
+              }
+            },
+            required: ["route"]
+          }
+        }
+      }
+    ];
+
+    // System instruction
     const systemMessage = {
       role: "system",
-      content: `You are AgriConnect AI, a helpful and versatile AI assistant. You can answer questions on ANY topic.
+      content: `You are AgriConnect AI, a helpful and versatile AI assistant with access to real-time information.
 
 **YOUR CAPABILITIES:**
 - General Knowledge: Answer ANY question about science, history, technology, culture, entertainment, education, etc.
-- Conversational: Engage in natural, friendly conversations about anything
-- Problem Solving: Help with reasoning, analysis, creative solutions
-- Agricultural Expertise: Specialized knowledge in farming, crops, fertilizers (when relevant)
+- Real-Time Data Access: Get current weather, market prices, news, and web information
+- Agricultural Expertise: Specialized knowledge in farming, crops, fertilizers
+- Marketplace Access: Query AgriConnect products, orders, and user data
 
-**USER STATUS:** ${isAuthenticated ? 'Logged in' : 'Guest (not logged in)'}
+**REAL-TIME TOOLS AVAILABLE:**
+- get_weather: Get current weather for any location
+- search_market_prices: Get real-time prices for commodities, agricultural products, stocks, etc.
+- web_search: Search the web for current information and news
+- query_products: Search marketplace products
+- query_orders: Check user orders (requires login)
+- navigate_to: Navigate to different pages
+
+**USER STATUS:** ${isAuthenticated ? 'Logged in (can access orders)' : 'Guest (login required for orders)'}
 
 **INSTRUCTIONS:**
-1. Answer ANY question the user asks, regardless of topic
-2. Be conversational, friendly, and helpful
-3. Provide accurate, well-informed responses
-4. Be concise but thorough
-5. Adapt to the user's needs and tone
-6. If you don't know something, be honest about it
-
-Remember: You're a general-purpose AI that happens to have special agricultural knowledge. Don't limit yourself to just farming topics!`
+1. Answer ANY question - use tools when you need current/real-time information
+2. For weather questions, ALWAYS use get_weather tool
+3. For market prices, commodity rates, stocks, ALWAYS use search_market_prices
+4. For current events, news, recent data, ALWAYS use web_search
+5. Be conversational, friendly, and helpful
+6. Provide accurate, well-informed responses using real-time data when available
+7. If you don't know something and no tool is available, be honest about it`
     };
 
-    // Call Lovable AI
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [systemMessage, ...messages],
-        temperature: 0.7,
-        max_tokens: 1000
-      }),
-    });
+    // Conversation loop to handle tool calls
+    const conversationMessages = [systemMessage, ...messages];
+    let navigationAction = null;
+    let iterations = 0;
+    const maxIterations = 10;
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Lovable AI error:', response.status, errorText);
-      
-      if (response.status === 429) {
+    while (iterations < maxIterations) {
+      iterations++;
+      console.log(`Iteration ${iterations}`);
+
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: conversationMessages,
+          tools: tools,
+          tool_choice: 'auto',
+          temperature: 0.7,
+          max_tokens: 2000
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Lovable AI error:', response.status, errorText);
+        
+        if (response.status === 429) {
+          return new Response(
+            JSON.stringify({ error: 'AI service is busy. Please try again in a moment.' }), 
+            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
         return new Response(
-          JSON.stringify({ error: 'AI service is busy. Please try again in a moment.' }), 
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Failed to get AI response' }), 
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+
+      const data = await response.json();
+      const choice = data.choices?.[0];
       
-      if (response.status === 402) {
+      if (!choice) {
         return new Response(
-          JSON.stringify({ error: 'AI service requires payment. Please contact support.' }), 
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'No response from AI' }), 
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+
+      const message = choice.message;
+
+      // Check if AI wants to call a function
+      if (message.tool_calls && message.tool_calls.length > 0) {
+        console.log('AI requested tool calls:', message.tool_calls.length);
+        
+        // Add assistant message with tool calls
+        conversationMessages.push(message);
+
+        // Execute each tool call
+        for (const toolCall of message.tool_calls) {
+          const functionName = toolCall.function.name;
+          const functionArgs = JSON.parse(toolCall.function.arguments);
+          
+          console.log(`Executing tool: ${functionName}`, functionArgs);
+
+          let toolResult;
+
+          try {
+            switch (functionName) {
+              case 'get_weather': {
+                // Get weather using wttr.in API
+                const location = functionArgs.location;
+                const weatherResponse = await fetch(`https://wttr.in/${encodeURIComponent(location)}?format=j1`);
+                if (weatherResponse.ok) {
+                  const weatherData = await weatherResponse.json();
+                  const current = weatherData.current_condition[0];
+                  toolResult = {
+                    location: location,
+                    temperature_c: current.temp_C,
+                    temperature_f: current.temp_F,
+                    condition: current.weatherDesc[0].value,
+                    humidity: current.humidity,
+                    wind_speed_kmph: current.windspeedKmph,
+                    feels_like_c: current.FeelsLikeC,
+                    visibility_km: current.visibility
+                  };
+                } else {
+                  toolResult = { error: 'Unable to fetch weather data' };
+                }
+                break;
+              }
+
+              case 'search_market_prices': {
+                // Use DuckDuckGo for market prices search
+                const query = functionArgs.query;
+                const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query + ' current price rate')}`;
+                
+                try {
+                  const searchResponse = await fetch(searchUrl, {
+                    headers: {
+                      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    }
+                  });
+                  const searchHtml = await searchResponse.text();
+                  
+                  // Extract snippets from search results
+                  const snippets = [];
+                  const snippetRegex = /<a class="result__snippet"[^>]*>(.*?)<\/a>/g;
+                  let match;
+                  while ((match = snippetRegex.exec(searchHtml)) !== null && snippets.length < 3) {
+                    snippets.push(match[1].replace(/<[^>]*>/g, '').substring(0, 200));
+                  }
+                  
+                  toolResult = {
+                    query: query,
+                    information: snippets.length > 0 ? snippets.join(' | ') : 'Market price information not available. Try being more specific.'
+                  };
+                } catch (error) {
+                  toolResult = { query: query, information: 'Unable to fetch current market prices. Please try rephrasing your query.' };
+                }
+                break;
+              }
+
+              case 'web_search': {
+                // Use DuckDuckGo for web search
+                const query = functionArgs.query;
+                const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+                
+                try {
+                  const searchResponse = await fetch(searchUrl, {
+                    headers: {
+                      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    }
+                  });
+                  const searchHtml = await searchResponse.text();
+                  
+                  // Extract snippets
+                  const snippets = [];
+                  const snippetRegex = /<a class="result__snippet"[^>]*>(.*?)<\/a>/g;
+                  let match;
+                  while ((match = snippetRegex.exec(searchHtml)) !== null && snippets.length < 5) {
+                    snippets.push(match[1].replace(/<[^>]*>/g, ''));
+                  }
+                  
+                  toolResult = {
+                    query: query,
+                    results: snippets.length > 0 ? snippets : ['No results found. Try rephrasing your query.']
+                  };
+                } catch (error) {
+                  toolResult = { query: query, error: 'Unable to search the web at this time.' };
+                }
+                break;
+              }
+
+              case 'query_products': {
+                let query = supabase.from('products').select('*');
+                
+                if (functionArgs.search_term) {
+                  query = query.or(`name.ilike.%${functionArgs.search_term}%,description.ilike.%${functionArgs.search_term}%,category.ilike.%${functionArgs.search_term}%`);
+                }
+                
+                query = query.limit(functionArgs.limit || 10);
+                
+                const { data: products, error } = await query;
+                toolResult = error ? { error: error.message } : { products: products || [] };
+                break;
+              }
+
+              case 'query_orders': {
+                if (!userId) {
+                  toolResult = { error: 'User must be logged in to view orders' };
+                  break;
+                }
+
+                let query = supabase
+                  .from('orders')
+                  .select('*, order_items(*)')
+                  .eq('customer_id', userId);
+
+                if (functionArgs.status) {
+                  query = query.eq('status', functionArgs.status);
+                }
+
+                const { data: orders, error } = await query;
+                toolResult = error ? { error: error.message } : { orders: orders || [] };
+                break;
+              }
+
+              case 'navigate_to': {
+                navigationAction = functionArgs.route;
+                toolResult = { success: true, route: functionArgs.route };
+                break;
+              }
+
+              default:
+                toolResult = { error: 'Unknown function' };
+            }
+          } catch (error) {
+            console.error(`Error executing ${functionName}:`, error);
+            toolResult = { error: `Failed to execute ${functionName}` };
+          }
+
+          // Add tool response to conversation
+          conversationMessages.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(toolResult)
+          });
+        }
+
+        // Continue the loop to get AI's response with the tool results
+        continue;
+      }
+
+      // No more tool calls, return the final response
+      const finalMessage = message.content;
       
+      if (!finalMessage) {
+        return new Response(
+          JSON.stringify({ error: 'No response from AI' }), 
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       return new Response(
-        JSON.stringify({ error: 'Failed to get AI response' }), 
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          message: finalMessage,
+          navigation: navigationAction 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const data = await response.json();
-    console.log('AI response received');
-
-    const aiMessage = data.choices?.[0]?.message?.content;
-    
-    if (!aiMessage) {
-      return new Response(
-        JSON.stringify({ error: 'No response from AI' }), 
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
+    // Max iterations reached
     return new Response(
       JSON.stringify({ 
-        message: aiMessage,
-        navigation: null 
+        message: "I've gathered the information but need to process it further. Please try asking your question again.",
+        navigation: null
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
