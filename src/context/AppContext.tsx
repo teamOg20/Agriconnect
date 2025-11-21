@@ -74,16 +74,33 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const vendors: Vendor[] = [
-    { id: 1, name: 'Punjab Organic Farms', location: 'Punjab', rating: 4.8, crops: ['Tomatoes', 'Wheat', 'Rice'], contact: '+91 98765 43210', image: '👨‍🌾', verified: true },
-    { id: 2, name: 'Haryana Rice Mills', location: 'Haryana', rating: 4.6, crops: ['Basmati Rice', 'Wheat'], contact: '+91 98765 43211', image: '🏭', verified: true },
-    { id: 3, name: 'Maharashtra Onion Co-op', location: 'Maharashtra', rating: 4.4, crops: ['Onions', 'Garlic', 'Chilies'], contact: '+91 98765 43212', image: '🧅', verified: true },
-    { id: 4, name: 'MP Wheat Farmers', location: 'Madhya Pradesh', rating: 4.7, crops: ['Wheat', 'Soybeans', 'Pulses'], contact: '+91 98765 43213', image: '🌾', verified: true },
-    { id: 5, name: 'Karnataka Spice Gardens', location: 'Karnataka', rating: 4.5, crops: ['Chilies', 'Turmeric', 'Coriander'], contact: '+91 98765 43214', image: '🌶️', verified: true }
-  ];
+  // Load real vendor data from AI
+  const loadVendors = async () => {
+    try {
+      console.log('Fetching real vendor data...');
+      const { data, error } = await supabase.functions.invoke('fetch-vendor-data');
+
+      if (error) {
+        console.error('Error loading vendors:', error);
+        toast({
+          title: "Info",
+          description: "Using cached vendor data",
+        });
+        return;
+      }
+
+      if (data?.vendors) {
+        setVendors(data.vendors);
+        console.log('Loaded real vendor data:', data.vendors.length, 'vendors');
+      }
+    } catch (error: any) {
+      console.error('Error loading vendors:', error);
+    }
+  };
 
   // Load products from database
   const loadProducts = async () => {
@@ -148,8 +165,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  // Load products on mount
+  // Load vendors and products on mount
   useEffect(() => {
+    loadVendors();
     loadProducts();
   }, []);
 
