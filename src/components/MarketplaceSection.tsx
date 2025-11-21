@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import marketplaceCrops from '@/assets/marketplace-crops.jpg';
+import freshTomatoes from '@/assets/fresh-tomatoes.jpg';
 
 interface Product {
   id: number;
@@ -22,7 +23,7 @@ const MarketplaceSection = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   const products: Product[] = [
-    { id: 1, name: 'Fresh Tomatoes', price: 25, unit: 'kg', rating: 4.5, location: 'Punjab', trend: '+12%', image: '🍅', category: 'Vegetables' },
+    { id: 1, name: 'Fresh Tomatoes', price: 25, unit: 'kg', rating: 4.5, location: 'Punjab', trend: '+12%', image: freshTomatoes, category: 'Vegetables' },
     { id: 2, name: 'Basmati Rice', price: 45, unit: 'kg', rating: 4.8, location: 'Haryana', trend: '+8%', image: '🌾', category: 'Grains' },
     { id: 3, name: 'Fresh Onions', price: 18, unit: 'kg', rating: 4.2, location: 'Maharashtra', trend: '-5%', image: '🧅', category: 'Vegetables' },
     { id: 4, name: 'Wheat Flour', price: 35, unit: 'kg', rating: 4.6, location: 'MP', trend: '+15%', image: '🌾', category: 'Grains' },
