@@ -208,7 +208,7 @@ const Footer = () => {
       {/* Back to Top Button */}
       <button
         onClick={() => scrollToSection('#home')}
-        className="fixed bottom-6 right-6 w-12 h-12 bg-gradient-hero rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-110 transition-transform z-40"
+        className="fixed bottom-6 left-6 w-12 h-12 bg-gradient-hero rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-110 transition-transform z-40"
       >
         <ArrowRight className="w-5 h-5 rotate-[-90deg]" />
       </button>
