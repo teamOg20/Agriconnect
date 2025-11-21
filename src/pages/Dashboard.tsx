@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, User, Mail, Phone, Calendar, Briefcase, Sprout, MapPin, Ruler, Mountain } from 'lucide-react';
+import { Loader2, User, Mail, Phone, Calendar, Briefcase, Sprout } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 
 interface UserProfile {
@@ -14,10 +14,6 @@ interface UserProfile {
   phone: string;
   user_type: string;
   created_at: string;
-  field_size?: string;
-  location?: string;
-  soil_type?: string;
-  major_crops?: string[];
 }
 
 const Dashboard = () => {
@@ -146,50 +142,6 @@ const Dashboard = () => {
                   </p>
                 </div>
               </div>
-
-              {profile.user_type === 'farmer' && (
-                <>
-                  {profile.field_size && (
-                    <div className="flex items-start space-x-4">
-                      <Ruler className="w-5 h-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Field Size</p>
-                        <p className="font-semibold">{profile.field_size}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {profile.location && (
-                    <div className="flex items-start space-x-4">
-                      <MapPin className="w-5 h-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Location</p>
-                        <p className="font-semibold">{profile.location}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {profile.soil_type && (
-                    <div className="flex items-start space-x-4">
-                      <Mountain className="w-5 h-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Soil Type</p>
-                        <p className="font-semibold">{profile.soil_type}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {profile.major_crops && profile.major_crops.length > 0 && (
-                    <div className="flex items-start space-x-4">
-                      <Sprout className="w-5 h-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Major Crops</p>
-                        <p className="font-semibold">{profile.major_crops.join(', ')}</p>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
             </div>
 
             <div className="mt-8 pt-6 border-t flex gap-4">
