@@ -27,9 +27,9 @@ For each vendor, provide:
 - contact: Real-looking Indian phone number format (+91-XXXXXXXXXX)
 - rating: Number between 4.0 and 5.0
 - verified: Always true
-- image: Appropriate emoji (🌾, 🚜, 🌱, 🥕, 🌽, 🍅, 🥬, 🧅)
+- image: Appropriate emoji (🌾, 🚜, 🌱, 🥕, 🌽, 🍅, 🥬, 🧅, 🍇, 🥜, 🍎, 🥥, 🥭, 🌶️)
 
-Return ONLY a JSON array of 12 vendor objects. Make the data realistic and diverse across different states.`;
+Return ONLY a JSON array of 24 vendor objects. Make the data realistic and diverse across different states, covering all major agricultural regions of India.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -46,7 +46,7 @@ Return ONLY a JSON array of 12 vendor objects. Make the data realistic and diver
           },
           {
             role: "user",
-            content: "Generate 12 realistic verified vendor entries for Indian agricultural marketplace"
+            content: "Generate 24 realistic verified vendor entries for Indian agricultural marketplace covering diverse states and crop varieties"
           }
         ],
         temperature: 0.8,
