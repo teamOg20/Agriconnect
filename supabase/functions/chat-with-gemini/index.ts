@@ -168,56 +168,179 @@ serve(async (req) => {
               },
               required: ["section"]
             }
+          },
+          {
+            name: "query_fertilizers",
+            description: "Search fertilizers database based on crop type, disease name, soil type, or organic preference. Returns matching fertilizers with details.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                crop: {
+                  type: "STRING",
+                  description: "Crop name to find suitable fertilizers for (e.g., 'tomatoes', 'wheat', 'rice')"
+                },
+                disease: {
+                  type: "STRING",
+                  description: "Disease name to find fertilizers that treat it (e.g., 'blight', 'rust', 'chlorosis')"
+                },
+                soil_type: {
+                  type: "STRING",
+                  description: "Soil type (e.g., 'clay', 'sandy', 'loam', 'black', 'alluvial')"
+                },
+                organic_only: {
+                  type: "BOOLEAN",
+                  description: "Filter to show only organic fertilizers"
+                },
+                fertilizer_type: {
+                  type: "STRING",
+                  description: "Type of fertilizer: 'organic', 'chemical', 'bio-fertilizer', 'specialized'"
+                },
+                limit: {
+                  type: "NUMBER",
+                  description: "Maximum number of results (default: 10)"
+                }
+              }
+            }
+          },
+          {
+            name: "recommend_fertilizer_for_disease",
+            description: "Get AI-powered fertilizer recommendations for specific crop diseases. Provides treatment strategy + fertilizer suggestions.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                crop: {
+                  type: "STRING",
+                  description: "Crop affected by disease (e.g., 'tomatoes', 'wheat')"
+                },
+                disease: {
+                  type: "STRING",
+                  description: "Disease name or symptoms (e.g., 'early blight', 'yellowing leaves', 'wilting')"
+                },
+                soil_type: {
+                  type: "STRING",
+                  description: "Optional: Soil type for better recommendations"
+                }
+              },
+              required: ["crop", "disease"]
+            }
+          },
+          {
+            name: "query_farmers",
+            description: "Query farmer profiles to find farmers by location, crops they grow, or soil type. Returns public farmer information.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                location: {
+                  type: "STRING",
+                  description: "Location to search for farmers (e.g., 'Punjab', 'Maharashtra')"
+                },
+                crop: {
+                  type: "STRING",
+                  description: "Crop to find farmers who grow it (e.g., 'rice', 'wheat')"
+                },
+                soil_type: {
+                  type: "STRING",
+                  description: "Soil type to find farmers with that soil"
+                },
+                limit: {
+                  type: "NUMBER",
+                  description: "Maximum number of results (default: 10)"
+                }
+              }
+            }
+          },
+          {
+            name: "get_soil_recommendations",
+            description: "Get comprehensive fertilizer and nutrient recommendations based on soil type and crop. Provides application rates and timing.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                soil_type: {
+                  type: "STRING",
+                  description: "Type of soil (e.g., 'clay', 'sandy', 'loam', 'black', 'alluvial')"
+                },
+                crop: {
+                  type: "STRING",
+                  description: "Crop to be grown (e.g., 'wheat', 'rice', 'tomatoes')"
+                },
+                field_size: {
+                  type: "STRING",
+                  description: "Optional: Field size for calculating quantities"
+                }
+              },
+              required: ["soil_type", "crop"]
+            }
           }
         ]
       }
     ];
 
     // Prepare messages for Gemini API
-    const systemInstruction = `You are an AI assistant for AgriConnect, an agricultural marketplace platform. You have access to the following:
+    const systemInstruction = `You are an AI assistant for AgriConnect, an agricultural marketplace platform. You are an expert in agriculture, crop diseases, soil science, and fertilizer management.
 
 DATABASE TABLES:
-- products: Contains agricultural products with name, price, category, vendor, stock_quantity (ordered by most recent)
-- orders: Contains user's order history with tracking, status, and delivery information
-- cart: Contains user's current shopping cart items
-- users: Contains user profiles with name, email, phone, user_type
-- profiles: Contains additional user profile information
+- products: Agricultural products with name, price, category, vendor, stock
+- orders: User order history with tracking and status
+- cart: User's current shopping cart items
+- users: User profiles with farmer info (field_size, location, soil_type, major_crops)
+- profiles: Basic user profile information
+- fertilizers: Comprehensive fertilizer database with types, NPK ratios, suitable crops, disease treatments, soil compatibility
 
 REAL-TIME DATA ACCESS:
-- Weather: Can fetch current weather, temperature, humidity, rainfall, and forecasts for any location worldwide
-- Agricultural Prices: Can search for real-time information about crop prices, commodity rates, fertilizer costs, and market information
-- Market Insights: Can provide information about agricultural trends, farming best practices, and industry updates
+- Weather: Current conditions, temperature, humidity, rainfall, forecasts for any location
+- Agricultural Prices: Real-time crop prices, commodity rates, fertilizer costs, market information
+- Fertilizers: Query by crop, disease, soil type, organic preference
+- Farmers: Search farmer profiles by location, crops, soil type
+
+AGRICULTURAL EXPERTISE:
+You have expert knowledge about:
+- Common crop diseases: Early blight, late blight, powdery mildew, leaf rust, blast, wilts, chlorosis, nutrient deficiencies
+- Fertilizer types: Organic (vermicompost, neem cake, compost), Chemical (NPK, urea, DAP), Bio-fertilizers (rhizobium, azotobacter), Specialized (micronutrients, calcium nitrate)
+- Soil types: Clay (heavy, water-retentive), Sandy (light, well-draining), Loam (balanced), Black (fertile, cotton-suitable), Alluvial (river deposits, very fertile)
+- NPK ratios: High N for leaf growth, high P for roots/flowers, high K for fruits/stress tolerance
+- Organic farming: Natural pest control, soil health, sustainable practices
 
 USER AUTHENTICATION:
-- The user is ${isAuthenticated ? 'LOGGED IN' : 'NOT logged in (guest)'}
-- ${isAuthenticated ? 'You can query their orders and cart' : 'Orders and cart queries require login - suggest they sign in'}
+- User is ${isAuthenticated ? 'LOGGED IN' : 'NOT logged in (guest)'}
+- ${isAuthenticated ? 'Can query orders, cart, and personal data' : 'Suggest login for personalized features'}
 
-NAVIGATION CAPABILITIES:
-- You can navigate users to different pages: home (/), marketplace, dashboard, orders, about, vendors, fertilizer-friend
-- You can scroll to sections on the home page: hero, problem, solution, features, marketplace, fertilizer, pricing, footer
+TOOLS AVAILABLE:
+Database Queries:
+- query_products: Search products by name, category
+- query_orders: View user's orders (auth required)
+- query_cart: Check cart items (auth required)
+- query_fertilizers: Search fertilizers by crop, disease, soil, organic filter
+- query_farmers: Find farmers by location, crops, soil type
+- count_records: Count records in tables
+
+AI-Powered Recommendations:
+- recommend_fertilizer_for_disease: Get disease diagnosis + treatment strategy + fertilizer suggestions
+- get_soil_recommendations: Get comprehensive fertilizer plan based on soil + crop
+
+External Data:
+- get_weather: Current weather and forecast for any location
+- search_agricultural_prices: Real-time crop and commodity prices
+
+Navigation:
+- navigate_to_page: Go to different pages (/, /marketplace, /dashboard, etc.)
+- scroll_to_section: Scroll to sections on home page
 
 INSTRUCTIONS:
-- Use database query tools when users ask about products, prices, orders, cart, or statistics from the platform
-- Use get_weather tool when users ask about weather, temperature, rainfall, humidity, climate conditions for any location
-- Use search_agricultural_prices tool when users ask about:
-  * Current crop prices (wheat, rice, tomato, potato, etc.)
-  * Commodity market rates
-  * Fertilizer prices and costs
-  * Agricultural market trends
-  * Farming-related economic information
-- For orders and cart queries: Only query if user is authenticated, otherwise politely ask them to sign in
-- All product queries return the most recent items first
-- When no products match a search, be helpful: suggest viewing available products or navigating to the marketplace
-- If available_products are provided in tool results, mention some of them as alternatives
-- Use navigation tools when users want to go to a specific page or section (e.g., "take me to marketplace", "show me orders")
-- Always be helpful, conversational, and provide accurate information based on REAL database results and API calls
-- When providing weather information, mention temperature, conditions, and farming-relevant details like rainfall
-- When providing price information, clarify that market rates can vary by location and users should verify with local markets
-- When navigating, confirm the action (e.g., "Taking you to the marketplace now!")
-- Understand voice commands naturally (e.g., "tomato prices" = query products for tomatoes, "my orders" = query orders, "check cart" = query cart, "weather in Delhi" = get weather, "wheat price today" = search agricultural prices)
-- NEVER make up or hallucinate data - only use actual database query results and real API responses
-- If a query returns no data, clearly state that and offer alternatives or navigation options
-- Be especially helpful for farmers by providing weather insights and market information that can help with farming decisions`;
+1. Be conversational, helpful, and farmer-friendly
+2. Use query_fertilizers when users ask: "fertilizer for tomatoes", "organic fertilizers", "what treats blight"
+3. Use recommend_fertilizer_for_disease for: "my wheat has rust", "tomato blight treatment", disease-specific queries
+4. Use get_soil_recommendations for: "clay soil wheat fertilizer", "sandy soil recommendations"
+5. Use query_farmers for: "farmers in Punjab", "who grows rice", farmer directory queries
+6. Use get_weather for weather queries, always mention farming-relevant info (rainfall, temperature)
+7. Use search_agricultural_prices for market rates, crop prices, commodity information
+8. Combine tools intelligently: Weather + fertilizer recommendations, disease + soil + fertilizer
+9. Provide practical advice: application rates, timing, prevention tips
+10. NEVER make up data - always use actual database and API results
+11. If no results found, suggest alternatives or navigation to marketplace/fertilizer sections
+12. Understand natural voice commands: "what to use for tomato disease" = recommend_fertilizer_for_disease
+13. Be especially helpful to farmers - provide cost-effective solutions, organic alternatives when possible
+14. When suggesting fertilizers, mention NPK ratios, benefits, and application timing
+15. For auth-required features, politely ask users to sign in`;
 
     // Convert messages to Gemini format
     const contents = messages.map((msg: any) => {
@@ -586,6 +709,201 @@ INSTRUCTIONS:
               }
               navigationAction = { action: 'scroll', section, success: true };
               result = { action: 'scroll', section, success: true };
+              break;
+            }
+
+            case 'query_fertilizers': {
+              let query = supabase.from('fertilizers').select('*');
+              
+              // Apply filters
+              if (args?.crop) {
+                query = query.contains('suitable_for_crops', [args.crop.toLowerCase()]);
+              }
+              if (args?.disease) {
+                query = query.contains('treats_diseases', [args.disease.toLowerCase()]);
+              }
+              if (args?.soil_type) {
+                query = query.contains('soil_compatibility', [args.soil_type.toLowerCase()]);
+              }
+              if (args?.organic_only === true) {
+                query = query.eq('organic', true);
+              }
+              if (args?.fertilizer_type) {
+                query = query.eq('type', args.fertilizer_type);
+              }
+              
+              const limit = args?.limit || 10;
+              query = query.limit(limit).order('rating', { ascending: false });
+              
+              const { data: fertilizers, error } = await query;
+              
+              if (error) {
+                result = { error: 'Failed to query fertilizers', details: error.message };
+              } else {
+                result = { 
+                  fertilizers: fertilizers || [], 
+                  count: fertilizers?.length || 0,
+                  message: fertilizers?.length === 0 ? 'No fertilizers found matching criteria' : undefined
+                };
+              }
+              break;
+            }
+
+            case 'recommend_fertilizer_for_disease': {
+              const crop = args?.crop;
+              const disease = args?.disease;
+              const soilType = args?.soil_type;
+              
+              if (!crop || !disease) {
+                result = { error: 'Crop and disease parameters are required' };
+                break;
+              }
+              
+              // First, query database for matching fertilizers
+              let query = supabase
+                .from('fertilizers')
+                .select('*')
+                .contains('suitable_for_crops', [crop.toLowerCase()]);
+                
+              if (disease) {
+                query = query.or(`treats_diseases.cs.{${disease.toLowerCase()}}`);
+              }
+              
+              const { data: matchingFertilizers } = await query.limit(5);
+              
+              // Use Gemini for intelligent disease analysis and recommendations
+              const analysisPrompt = `As an agricultural expert, analyze this crop disease and provide recommendations:
+  
+Crop: ${crop}
+Disease/Problem: ${disease}
+Soil Type: ${soilType || 'not specified'}
+
+Available fertilizers in database: ${JSON.stringify(matchingFertilizers || [])}
+
+Please provide:
+1. Disease identification and cause
+2. Treatment strategy (cultural, chemical, organic methods)
+3. Specific fertilizer recommendations from the available options
+4. Application timing and rates
+5. Prevention tips for future
+
+Keep response practical and farmer-friendly.`;
+
+              const analysisResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: analysisPrompt }] }],
+                  generationConfig: { temperature: 0.3, maxOutputTokens: 800 }
+                })
+              });
+              
+              const analysisData = await analysisResponse.json();
+              const recommendation = analysisData.candidates?.[0]?.content?.parts?.[0]?.text || 'Analysis unavailable';
+              
+              result = {
+                crop,
+                disease,
+                soil_type: soilType,
+                recommendation,
+                matching_fertilizers: matchingFertilizers || [],
+                count: matchingFertilizers?.length || 0
+              };
+              break;
+            }
+
+            case 'query_farmers': {
+              let query = supabase
+                .from('users')
+                .select('full_name, location, field_size, soil_type, major_crops, user_type')
+                .eq('user_type', 'farmer');
+              
+              if (args?.location) {
+                query = query.ilike('location', `%${args.location}%`);
+              }
+              if (args?.crop) {
+                query = query.contains('major_crops', [args.crop.toLowerCase()]);
+              }
+              if (args?.soil_type) {
+                query = query.ilike('soil_type', `%${args.soil_type}%`);
+              }
+              
+              const limit = args?.limit || 10;
+              query = query.limit(limit);
+              
+              const { data: farmers, error } = await query;
+              
+              if (error) {
+                result = { error: 'Failed to query farmers', details: error.message };
+              } else {
+                result = {
+                  farmers: farmers || [],
+                  count: farmers?.length || 0,
+                  message: farmers?.length === 0 ? 'No farmers found matching criteria' : undefined
+                };
+              }
+              break;
+            }
+
+            case 'get_soil_recommendations': {
+              const soilType = args?.soil_type;
+              const crop = args?.crop;
+              const fieldSize = args?.field_size;
+              
+              if (!soilType || !crop) {
+                result = { error: 'Soil type and crop parameters are required' };
+                break;
+              }
+              
+              // Query fertilizers suitable for this soil and crop
+              const { data: suitableFertilizers } = await supabase
+                .from('fertilizers')
+                .select('*')
+                .contains('suitable_for_crops', [crop.toLowerCase()])
+                .contains('soil_compatibility', [soilType.toLowerCase()])
+                .order('rating', { ascending: false })
+                .limit(5);
+              
+              // Get AI recommendations
+              const recommendationPrompt = `As a soil scientist and agronomist, provide comprehensive fertilizer recommendations:
+
+Soil Type: ${soilType}
+Crop: ${crop}
+Field Size: ${fieldSize || 'not specified'}
+
+Available suitable fertilizers: ${JSON.stringify(suitableFertilizers || [])}
+
+Provide:
+1. Soil characteristics and nutrient availability
+2. Crop nutrient requirements
+3. Recommended fertilizers from the available options
+4. NPK ratio recommendations
+5. Application timing (basal, top-dressing)
+6. Application rates per acre/hectare
+7. Soil amendment suggestions if needed
+
+Be specific with quantities and timing.`;
+
+              const recommendationResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: recommendationPrompt }] }],
+                  generationConfig: { temperature: 0.2, maxOutputTokens: 1000 }
+                })
+              });
+              
+              const recommendationData = await recommendationResponse.json();
+              const recommendations = recommendationData.candidates?.[0]?.content?.parts?.[0]?.text || 'Recommendations unavailable';
+              
+              result = {
+                soil_type: soilType,
+                crop,
+                field_size: fieldSize,
+                recommendations,
+                suitable_fertilizers: suitableFertilizers || [],
+                count: suitableFertilizers?.length || 0
+              };
               break;
             }
             

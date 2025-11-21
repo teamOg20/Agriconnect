@@ -49,6 +49,72 @@ export type Database = {
           },
         ]
       }
+      fertilizers: {
+        Row: {
+          benefits: string | null
+          brand: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image: string | null
+          name: string
+          npk_ratio: string | null
+          organic: boolean | null
+          price: number | null
+          rating: number | null
+          soil_compatibility: string[] | null
+          stock_quantity: number | null
+          suitable_for_crops: string[] | null
+          treats_diseases: string[] | null
+          type: string
+          unit: string | null
+          updated_at: string | null
+          usage_instructions: string | null
+        }
+        Insert: {
+          benefits?: string | null
+          brand?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image?: string | null
+          name: string
+          npk_ratio?: string | null
+          organic?: boolean | null
+          price?: number | null
+          rating?: number | null
+          soil_compatibility?: string[] | null
+          stock_quantity?: number | null
+          suitable_for_crops?: string[] | null
+          treats_diseases?: string[] | null
+          type: string
+          unit?: string | null
+          updated_at?: string | null
+          usage_instructions?: string | null
+        }
+        Update: {
+          benefits?: string | null
+          brand?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image?: string | null
+          name?: string
+          npk_ratio?: string | null
+          organic?: boolean | null
+          price?: number | null
+          rating?: number | null
+          soil_compatibility?: string[] | null
+          stock_quantity?: number | null
+          suitable_for_crops?: string[] | null
+          treats_diseases?: string[] | null
+          type?: string
+          unit?: string | null
+          updated_at?: string | null
+          usage_instructions?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string | null
