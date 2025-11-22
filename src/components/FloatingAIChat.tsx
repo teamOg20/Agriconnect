@@ -225,6 +225,12 @@ const FloatingAIChat = ({ isOpen: externalIsOpen, onOpenChange }: FloatingAIChat
 
       if (error) {
         console.error('Error calling chat function:', error);
+        
+        // Handle 402 error specifically
+        if (error.message?.includes('credits exhausted') || error.message?.includes('402')) {
+          throw new Error('AI service is currently unavailable due to insufficient credits. Please contact support.');
+        }
+        
         throw new Error(error.message || 'Failed to get response from AI');
       }
 

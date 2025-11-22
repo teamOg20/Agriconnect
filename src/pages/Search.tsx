@@ -187,7 +187,13 @@ const Search = () => {
         body: { messages }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle 402 error specifically
+        if (error.message?.includes('credits exhausted') || error.message?.includes('402')) {
+          throw new Error('AI service is currently unavailable due to insufficient credits. Please contact support.');
+        }
+        throw error;
+      }
 
       if (data?.message) {
         setAiResponse(data.message);

@@ -238,6 +238,13 @@ serve(async (req) => {
           );
         }
         
+        if (response.status === 402) {
+          return new Response(
+            JSON.stringify({ error: 'AI service credits exhausted. Please contact support or add credits to continue.' }), 
+            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
         return new Response(
           JSON.stringify({ error: 'Failed to get AI response' }), 
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
