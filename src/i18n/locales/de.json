@@ -1,0 +1,71 @@
+{
+  "nav": {
+    "home": "Startseite",
+    "marketplace": "Marktplatz",
+    "orders": "Bestellungen",
+    "orderHistory": "Bestellverlauf",
+    "vendors": "Anbieter",
+    "fertilizerFriend": "Düngerfreund",
+    "search": "Suchen",
+    "aboutUs": "Über Uns",
+    "bio": "Bio",
+    "signIn": "Anmelden",
+    "register": "Registrieren",
+    "logout": "Abmelden",
+    "admin": "Administrator"
+  },
+  "hero": {
+    "title": "Landwirte mit Märkten Verbinden",
+    "subtitle": "Die Lücke zwischen ländlichen Landwirten und städtischen Märkten durch Technologie schließen",
+    "cta": "Loslegen",
+    "learnMore": "Mehr Erfahren"
+  },
+  "problem": {
+    "title": "Die Herausforderung",
+    "description": "Landwirte haben Schwierigkeiten, Zugang zu Märkten zu erhalten und faire Preise für ihre Produkte zu bekommen"
+  },
+  "solution": {
+    "title": "Unsere Lösung",
+    "description": "AgriConnect bietet eine direkte Plattform, die Landwirte mit Käufern verbindet, faire Preise sicherstellt und Zwischenhändler reduziert"
+  },
+  "features": {
+    "title": "Funktionen",
+    "feature1": "Direkter Marktzugang",
+    "feature2": "Faire Preise",
+    "feature3": "KI-gestützte Einblicke",
+    "feature4": "Echtzeit-Updates"
+  },
+  "marketplace": {
+    "title": "Marktplatz",
+    "description": "Durchsuchen und kaufen Sie frische Produkte direkt von Landwirten"
+  },
+  "fertilizer": {
+    "title": "Düngerfreund",
+    "description": "Erhalten Sie KI-gestützte Düngerempfehlungen für Ihre Pflanzen"
+  },
+  "pricing": {
+    "title": "Preispläne",
+    "description": "Wählen Sie den Plan, der am besten für Sie funktioniert"
+  },
+  "footer": {
+    "copyright": "© 2024 AgriConnect. Alle Rechte vorbehalten.",
+    "aboutUs": "Über Uns",
+    "contact": "Kontakt",
+    "privacy": "Datenschutzrichtlinie",
+    "terms": "Nutzungsbedingungen"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "add": "Hinzufügen",
+    "search": "Suchen",
+    "filter": "Filtern",
+    "sort": "Sortieren",
+    "viewAll": "Alle Anzeigen"
+  }
+}

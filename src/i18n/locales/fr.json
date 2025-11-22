@@ -1,0 +1,71 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "marketplace": "Marché",
+    "orders": "Commandes",
+    "orderHistory": "Historique des Commandes",
+    "vendors": "Vendeurs",
+    "fertilizerFriend": "Ami Engrais",
+    "search": "Rechercher",
+    "aboutUs": "À Propos",
+    "bio": "Bio",
+    "signIn": "Se Connecter",
+    "register": "S'inscrire",
+    "logout": "Déconnexion",
+    "admin": "Administrateur"
+  },
+  "hero": {
+    "title": "Connecter les Agriculteurs aux Marchés",
+    "subtitle": "Combler le fossé entre les agriculteurs ruraux et les marchés urbains grâce à la technologie",
+    "cta": "Commencer",
+    "learnMore": "En Savoir Plus"
+  },
+  "problem": {
+    "title": "Le Défi",
+    "description": "Les agriculteurs ont des difficultés à accéder aux marchés et à obtenir des prix équitables pour leurs produits"
+  },
+  "solution": {
+    "title": "Notre Solution",
+    "description": "AgriConnect fournit une plateforme directe reliant les agriculteurs aux acheteurs, garantissant des prix équitables et réduisant les intermédiaires"
+  },
+  "features": {
+    "title": "Fonctionnalités",
+    "feature1": "Accès Direct au Marché",
+    "feature2": "Prix Équitables",
+    "feature3": "Informations Alimentées par l'IA",
+    "feature4": "Mises à Jour en Temps Réel"
+  },
+  "marketplace": {
+    "title": "Marché",
+    "description": "Parcourez et achetez des produits frais directement auprès des agriculteurs"
+  },
+  "fertilizer": {
+    "title": "Ami Engrais",
+    "description": "Obtenez des recommandations d'engrais alimentées par l'IA pour vos cultures"
+  },
+  "pricing": {
+    "title": "Plans Tarifaires",
+    "description": "Choisissez le plan qui vous convient le mieux"
+  },
+  "footer": {
+    "copyright": "© 2024 AgriConnect. Tous droits réservés.",
+    "aboutUs": "À Propos",
+    "contact": "Contact",
+    "privacy": "Politique de Confidentialité",
+    "terms": "Conditions de Service"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "sort": "Trier",
+    "viewAll": "Voir Tout"
+  }
+}

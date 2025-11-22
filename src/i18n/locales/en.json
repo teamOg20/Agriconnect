@@ -1,0 +1,71 @@
+{
+  "nav": {
+    "home": "Home",
+    "marketplace": "Marketplace",
+    "orders": "Orders",
+    "orderHistory": "Order History",
+    "vendors": "Vendors",
+    "fertilizerFriend": "Fertilizer Friend",
+    "search": "Search",
+    "aboutUs": "About Us",
+    "bio": "Bio",
+    "signIn": "Sign In",
+    "register": "Register",
+    "logout": "Logout",
+    "admin": "Admin"
+  },
+  "hero": {
+    "title": "Connecting Farmers with Markets",
+    "subtitle": "Bridging the gap between rural farmers and urban markets through technology",
+    "cta": "Get Started",
+    "learnMore": "Learn More"
+  },
+  "problem": {
+    "title": "The Challenge",
+    "description": "Farmers face difficulties accessing markets and getting fair prices for their produce"
+  },
+  "solution": {
+    "title": "Our Solution",
+    "description": "AgriConnect provides a direct platform connecting farmers with buyers, ensuring fair prices and reducing intermediaries"
+  },
+  "features": {
+    "title": "Features",
+    "feature1": "Direct Market Access",
+    "feature2": "Fair Pricing",
+    "feature3": "AI-Powered Insights",
+    "feature4": "Real-time Updates"
+  },
+  "marketplace": {
+    "title": "Marketplace",
+    "description": "Browse and purchase fresh produce directly from farmers"
+  },
+  "fertilizer": {
+    "title": "Fertilizer Friend",
+    "description": "Get AI-powered fertilizer recommendations for your crops"
+  },
+  "pricing": {
+    "title": "Pricing Plans",
+    "description": "Choose the plan that works best for you"
+  },
+  "footer": {
+    "copyright": "© 2024 AgriConnect. All rights reserved.",
+    "aboutUs": "About Us",
+    "contact": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "viewAll": "View All"
+  }
+}
