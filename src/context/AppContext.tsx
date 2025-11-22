@@ -387,6 +387,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
       if (error) {
         console.error('Error loading vendors:', error);
+        
+        // Handle 402 payment error specifically
+        if (error.message?.includes('Payment required') || error.message?.includes('credits')) {
+          toast({
+            title: "Using Sample Data",
+            description: "AI-generated vendor data is unavailable. Showing sample vendors instead.",
+            variant: "default",
+          });
+          return;
+        }
+        
         toast({
           title: "Info",
           description: "Using cached vendor data",
@@ -400,6 +411,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
     } catch (error: any) {
       console.error('Error loading vendors:', error);
+      toast({
+        title: "Using Sample Data",
+        description: "Unable to load real-time vendor data. Showing sample vendors.",
+      });
     }
   };
 
