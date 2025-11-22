@@ -1,16 +1,21 @@
-import { useState, useEffect } from 'react';
-import { Search as SearchIcon, Filter, Mic, X, Clock, TrendingUp } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Search as SearchIcon, Filter, Mic, X, Clock, TrendingUp, Image as ImageIcon, Sparkles, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAppContext } from '@/context/AppContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import Navigation from '@/components/Navigation';
 import FloatingAIChat from '@/components/FloatingAIChat';
 
 const Search = () => {
   const { addToCart } = useAppContext();
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isListening, setIsListening] = useState(false);
@@ -23,6 +28,12 @@ const Search = () => {
   ]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('relevance');
+  
+  // AI-powered search states
+  const [aiMode, setAiMode] = useState(false);
+  const [aiResponse, setAiResponse] = useState('');
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
   // Mock data for search
   const allItems = [
@@ -123,6 +134,91 @@ const Search = () => {
     }
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Image too large",
+        description: "Please upload an image smaller than 5MB",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setUploadedImage(reader.result as string);
+      setAiMode(true);
+      toast({
+        title: "Image uploaded",
+        description: "Now ask a question about this image"
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAiSearch = async () => {
+    if (!searchQuery.trim() && !uploadedImage) return;
+
+    setIsAiLoading(true);
+    setAiResponse('');
+
+    try {
+      const messages = [];
+      
+      if (uploadedImage) {
+        messages.push({
+          role: 'user',
+          content: [
+            { type: 'text', text: searchQuery || 'What is in this image? Provide detailed information.' },
+            { type: 'image_url', image_url: { url: uploadedImage } }
+          ]
+        });
+      } else {
+        messages.push({
+          role: 'user',
+          content: searchQuery
+        });
+      }
+
+      const { data, error } = await supabase.functions.invoke('chat-with-gemini', {
+        body: { messages }
+      });
+
+      if (error) throw error;
+
+      if (data?.message) {
+        setAiResponse(data.message);
+      } else {
+        throw new Error('No response from AI');
+      }
+    } catch (error) {
+      console.error('AI search error:', error);
+      toast({
+        title: "AI search failed",
+        description: "Please try again or use regular search",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  const toggleAiMode = () => {
+    setAiMode(!aiMode);
+    setAiResponse('');
+    setUploadedImage(null);
+  };
+
+  const removeImage = () => {
+    setUploadedImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <Navigation />
@@ -140,6 +236,25 @@ const Search = () => {
             </p>
           </div>
 
+          {/* AI Mode Toggle */}
+          <div className="max-w-4xl mx-auto mb-4">
+            <div className="flex items-center justify-center gap-4">
+              <Button
+                onClick={toggleAiMode}
+                variant={aiMode ? "default" : "outline"}
+                className={aiMode ? "bg-gradient-to-r from-purple-600 to-blue-600" : ""}
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                AI-Powered Search
+              </Button>
+              {aiMode && (
+                <Badge variant="secondary" className="animate-pulse">
+                  Ask anything • Real-time data • Image analysis
+                </Badge>
+              )}
+            </div>
+          </div>
+
           {/* Search Bar */}
           <div className="max-w-4xl mx-auto mb-8">
             <div className="relative">
@@ -147,11 +262,39 @@ const Search = () => {
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for crops, fertilizers, vendors..."
-                className="pl-12 pr-24 py-4 text-lg rounded-2xl border-2 border-gray-200 focus:border-green-500"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && aiMode) {
+                    handleAiSearch();
+                  }
+                }}
+                placeholder={aiMode ? "Ask anything... (weather, prices, products, orders)" : "Search for crops, fertilizers, vendors..."}
+                className={`pl-12 pr-32 py-4 text-lg rounded-2xl border-2 ${
+                  aiMode ? 'border-purple-300 focus:border-purple-500' : 'border-gray-200 focus:border-green-500'
+                }`}
               />
               
               <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                {aiMode && (
+                  <>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImageUpload}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-purple-600 hover:bg-purple-50"
+                      title="Upload image"
+                    >
+                      <ImageIcon className="w-5 h-5" />
+                    </Button>
+                  </>
+                )}
+                
                 <Button
                   variant="ghost"
                   size="sm"
@@ -171,6 +314,21 @@ const Search = () => {
                     <X className="w-5 h-5" />
                   </Button>
                 )}
+
+                {aiMode && (
+                  <Button
+                    onClick={handleAiSearch}
+                    disabled={isAiLoading || (!searchQuery.trim() && !uploadedImage)}
+                    size="sm"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600"
+                  >
+                    {isAiLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-4 h-4" />
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -178,6 +336,20 @@ const Search = () => {
               <div className="flex items-center justify-center mt-4 text-red-600">
                 <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse mr-2"></div>
                 <span>Listening... Speak now</span>
+              </div>
+            )}
+
+            {uploadedImage && (
+              <div className="mt-4 relative inline-block">
+                <img src={uploadedImage} alt="Upload preview" className="max-w-xs rounded-lg border-2 border-purple-300" />
+                <Button
+                  onClick={removeImage}
+                  size="sm"
+                  variant="destructive"
+                  className="absolute -top-2 -right-2 rounded-full w-8 h-8 p-0"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </div>
             )}
           </div>
@@ -223,8 +395,30 @@ const Search = () => {
             </div>
           )}
 
+          {/* AI Response */}
+          {aiMode && aiResponse && (
+            <div className="max-w-4xl mx-auto mb-8">
+              <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-200">
+                <div className="p-6">
+                  <div className="flex items-start space-x-3 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">AI Assistant</h3>
+                      <Badge variant="secondary" className="text-xs">Real-time data enabled</Badge>
+                    </div>
+                  </div>
+                  <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap pl-13">
+                    {aiResponse}
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
+
           {/* Search Results */}
-          {searchQuery && searchResults.length > 0 ? (
+          {!aiMode && searchQuery && searchResults.length > 0 ? (
             <div className="max-w-4xl mx-auto">
               <div className="space-y-4">
                 {searchResults.map((item) => (
@@ -286,7 +480,7 @@ const Search = () => {
                 ))}
               </div>
             </div>
-          ) : searchQuery && searchResults.length === 0 ? (
+          ) : !aiMode && searchQuery && searchResults.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🔍</div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">No results found</h3>
@@ -295,7 +489,7 @@ const Search = () => {
                 Clear Search
               </Button>
             </div>
-          ) : (
+          ) : !aiMode ? (
             <div className="max-w-4xl mx-auto space-y-8">
               {/* Trending Searches */}
               <div>
@@ -359,7 +553,7 @@ const Search = () => {
                 </div>
               </div>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
