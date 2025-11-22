@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAppContext, Product } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
-import { useLanguage } from '@/context/LanguageContext';
 import Navigation from '@/components/Navigation';
 import FloatingAIChat from '@/components/FloatingAIChat';
 
@@ -16,7 +15,6 @@ const Marketplace = () => {
   const navigate = useNavigate();
   const { cart, products, addToCart, updateCartQuantity, getTotalPrice, getTotalItems, loadProducts } = useAppContext();
   const { user } = useAuth();
-  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [priceRange, setPriceRange] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -93,10 +91,10 @@ const Marketplace = () => {
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              {t('marketplace.title')}
+              AgriConnect Marketplace
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              {t('marketplace.subtitle')}
+              Fresh produce directly from farmers. Fair prices, quality guaranteed.
             </p>
           </div>
 
@@ -107,7 +105,7 @@ const Marketplace = () => {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <Input
-                    placeholder={t('marketplace.search')}
+                    placeholder="Search crops, vendors..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
@@ -165,7 +163,7 @@ const Marketplace = () => {
                       )}
                     </div>
                     <Badge variant="default" className="bg-green-100 text-green-700">
-                      {t('marketplace.inStock')}
+                      In Stock
                     </Badge>
                   </div>
 
@@ -180,11 +178,11 @@ const Marketplace = () => {
                     </div>
                     <span className="text-gray-300">•</span>
                     <Badge variant="secondary" className="text-xs">
-                      {t('marketplace.stock')}: {product.stock_quantity}
+                      Stock: {product.stock_quantity}
                     </Badge>
                   </div>
 
-                  <div className="text-xs text-gray-500 mb-3">{t('marketplace.vendor')}: {product.vendor}</div>
+                  <div className="text-xs text-gray-500 mb-3">Vendor: {product.vendor}</div>
 
                   {/* Pricing */}
                   <div className="flex items-center justify-between mb-4">
@@ -227,7 +225,7 @@ const Marketplace = () => {
                         size="sm"
                       >
                         <Plus className="w-4 h-4 mr-2" />
-                        {t('marketplace.addToCart')}
+                        Add to Cart
                       </Button>
                     )}
                   </div>
@@ -239,20 +237,20 @@ const Marketplace = () => {
           {getTotalItems() > 0 && (
             <div className="fixed bottom-24 right-6 bg-white rounded-2xl shadow-2xl border p-6 z-40 min-w-[300px]">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-bold text-gray-900">{t('marketplace.yourCart')}</h4>
+                <h4 className="text-lg font-bold text-gray-900">Your Cart</h4>
                 <Badge className="bg-green-100 text-green-700">
-                  {getTotalItems()} {t('marketplace.items')}
+                  {getTotalItems()} items
                 </Badge>
               </div>
               
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-lg font-bold">{t('marketplace.total')}: ₹{getTotalPrice()}</span>
+                  <span className="text-lg font-bold">Total: ₹{getTotalPrice()}</span>
                 </div>
                 
                 <Button className="btn-hero w-full" onClick={() => navigate('/checkout')}>
                   <ShoppingCart className="w-5 h-5 mr-2" />
-                  {t('marketplace.checkout')}
+                  Proceed to Checkout
                 </Button>
               </div>
             </div>

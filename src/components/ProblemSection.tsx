@@ -1,33 +1,30 @@
 import { AlertTriangle, TrendingDown, Users, CloudRain, IndianRupee } from 'lucide-react';
-import { useLanguage } from '@/context/LanguageContext';
 
 const ProblemSection = () => {
-  const { t } = useLanguage();
-  
   const problems = [
     {
       icon: <TrendingDown className="w-8 h-8 text-red-500" />,
-      title: t('problem.wrongPricing'),
-      description: t('problem.wrongPricingDesc'),
-      stat: t('problem.wrongPricingStat')
+      title: "Wrong Pricing",
+      description: "Farmers don't get fair market prices for their crops due to information gaps.",
+      stat: "40% below market rate"
     },
     {
       icon: <Users className="w-8 h-8 text-orange-500" />,
-      title: t('problem.middlemen'),
-      description: t('problem.middlemenDesc'),
-      stat: t('problem.middlemenStat')
+      title: "Middlemen Dependency",
+      description: "Heavy reliance on intermediaries reduces farmer profits significantly.",
+      stat: "60% profit loss"
     },
     {
       icon: <CloudRain className="w-8 h-8 text-blue-500" />,
-      title: t('problem.weather'),
-      description: t('problem.weatherDesc'),
-      stat: t('problem.weatherStat')
+      title: "Weather Risks",
+      description: "Unpredictable weather patterns cause massive crop losses without proper guidance.",
+      stat: "25% crop loss annually"
     },
     {
       icon: <IndianRupee className="w-8 h-8 text-purple-500" />,
-      title: t('problem.inflation'),
-      description: t('problem.inflationDesc'),
-      stat: t('problem.inflationStat')
+      title: "Inflation Impact",
+      description: "Rising costs and inflation affect both farmers and consumers nationwide.",
+      stat: "15% price increase"
     }
   ];
 
@@ -38,15 +35,16 @@ const ProblemSection = () => {
         <div className="text-center mb-16">
           <div className="inline-flex items-center px-4 py-2 bg-red-100 rounded-full mb-6">
             <AlertTriangle className="w-5 h-5 text-red-600 mr-2" />
-            <span className="text-red-700 font-medium">{t('problem.badge')}</span>
+            <span className="text-red-700 font-medium">The Current Reality</span>
           </div>
           
           <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-            {t('problem.title')}
+            Challenges Farmers Face Today
           </h2>
           
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            {t('problem.subtitle')}
+            Despite being the backbone of our economy, farmers struggle with systemic issues 
+            that prevent them from earning fair profits and accessing modern farming solutions.
           </p>
         </div>
 
@@ -81,31 +79,31 @@ const ProblemSection = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h3 className="text-3xl font-bold text-gray-900 mb-6">
-                {t('problem.dilemma')}
+                The Farmer's Dilemma
               </h3>
               
               <div className="space-y-4">
                 <div className="flex items-start space-x-4">
                   <div className="w-6 h-6 bg-red-500 rounded-full flex-shrink-0 mt-1"></div>
                   <div>
-                    <div className="font-semibold text-gray-900">{t('problem.marketAccess')}</div>
-                    <div className="text-gray-600">{t('problem.marketAccessDesc')}</div>
+                    <div className="font-semibold text-gray-900">Limited Market Access</div>
+                    <div className="text-gray-600">Farmers sell to local mandis at low prices due to lack of broader market reach.</div>
                   </div>
                 </div>
                 
                 <div className="flex items-start space-x-4">
                   <div className="w-6 h-6 bg-orange-500 rounded-full flex-shrink-0 mt-1"></div>
                   <div>
-                    <div className="font-semibold text-gray-900">{t('problem.infoGap')}</div>
-                    <div className="text-gray-600">{t('problem.infoGapDesc')}</div>
+                    <div className="font-semibold text-gray-900">Information Gap</div>
+                    <div className="text-gray-600">No real-time pricing, weather updates, or market demand insights.</div>
                   </div>
                 </div>
                 
                 <div className="flex items-start space-x-4">
                   <div className="w-6 h-6 bg-purple-500 rounded-full flex-shrink-0 mt-1"></div>
                   <div>
-                    <div className="font-semibold text-gray-900">{t('problem.supplyChain')}</div>
-                    <div className="text-gray-600">{t('problem.supplyChainDesc')}</div>
+                    <div className="font-semibold text-gray-900">Supply Chain Issues</div>
+                    <div className="text-gray-600">Complex distribution chains increase costs for everyone.</div>
                   </div>
                 </div>
               </div>
@@ -114,19 +112,19 @@ const ProblemSection = () => {
             <div className="relative">
               <div className="bg-gradient-to-r from-red-400 to-orange-400 rounded-2xl p-8 text-center text-white">
                 <div className="text-6xl font-bold mb-4">₹2.5L</div>
-                <div className="text-xl font-semibold mb-2">{t('problem.annualLoss')}</div>
-                <div className="text-red-100">{t('problem.perFamily')}</div>
+                <div className="text-xl font-semibold mb-2">Average Annual Loss</div>
+                <div className="text-red-100">Per farming family due to these challenges</div>
               </div>
               
               {/* Floating stats */}
               <div className="absolute -top-4 -right-4 bg-white rounded-lg shadow-lg p-4 text-center">
                 <div className="text-2xl font-bold text-gray-900">85%</div>
-                <div className="text-sm text-gray-600">{t('problem.smallFarmers')}</div>
+                <div className="text-sm text-gray-600">Small farmers</div>
               </div>
               
               <div className="absolute -bottom-4 -left-4 bg-white rounded-lg shadow-lg p-4 text-center">
                 <div className="text-2xl font-bold text-gray-900">60%</div>
-                <div className="text-sm text-gray-600">{t('problem.population')}</div>
+                <div className="text-sm text-gray-600">Population dependent</div>
               </div>
             </div>
           </div>

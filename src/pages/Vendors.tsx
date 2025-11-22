@@ -6,13 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAppContext } from '@/context/AppContext';
-import { useLanguage } from '@/context/LanguageContext';
 import Navigation from '@/components/Navigation';
 import FloatingAIChat from '@/components/FloatingAIChat';
 
 const Vendors = () => {
   const { vendors } = useAppContext();
-  const { t } = useLanguage();
   const [selectedState, setSelectedState] = useState('All');
   const [selectedCrop, setSelectedCrop] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,10 +46,10 @@ const Vendors = () => {
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              {t('vendors.title')}
+              Verified Vendors
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              {t('vendors.subtitle')}
+              Connect directly with trusted farmers and suppliers across India
             </p>
           </div>
 
@@ -62,7 +60,7 @@ const Vendors = () => {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <Input
-                    placeholder={t('vendors.search')}
+                    placeholder="Search vendors by name or location..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
@@ -126,13 +124,13 @@ const Vendors = () => {
                     </div>
                     <span className="text-gray-300">•</span>
                     <Badge variant="secondary">
-                      {vendor.verified ? t('vendors.verified') : t('vendors.pending')}
+                      {vendor.verified ? 'Verified' : 'Pending'}
                     </Badge>
                   </div>
 
                   {/* Crops Available */}
                   <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-gray-900 mb-2">{t('vendors.cropsAvailable')}</h4>
+                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Crops Available:</h4>
                     <div className="flex flex-wrap gap-2">
                       {vendor.crops.slice(0, 3).map((crop, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
@@ -164,14 +162,14 @@ const Vendors = () => {
                       className="flex-1"
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
-                      {t('vendors.contact')}
+                      Contact
                     </Button>
                     <Button
                       size="sm"
                       onClick={() => viewInventory(vendor)}
                       className="btn-hero flex-1"
                     >
-                      {t('vendors.viewInventory')}
+                      View Inventory
                     </Button>
                   </div>
 
@@ -205,8 +203,8 @@ const Vendors = () => {
           {filteredVendors.length === 0 && (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('vendors.noVendors')}</h3>
-              <p className="text-gray-600">{t('vendors.adjustCriteria')}</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No vendors found</h3>
+              <p className="text-gray-600">Try adjusting your search criteria</p>
             </div>
           )}
 

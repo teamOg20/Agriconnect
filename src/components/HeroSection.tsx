@@ -1,15 +1,12 @@
 import { ArrowRight, MessageCircle, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import heroFarm from '@/assets/hero-farm.jpg';
-import { useLanguage } from '@/context/LanguageContext';
 
 interface HeroSectionProps {
   onOpenChat?: () => void;
 }
 
 const HeroSection = ({ onOpenChat }: HeroSectionProps) => {
-  const { t } = useLanguage();
-  
   const scrollToSection = (href: string) => {
     const element = document.querySelector(href);
     if (element) {
@@ -35,20 +32,21 @@ const HeroSection = ({ onOpenChat }: HeroSectionProps) => {
           <div className="text-center lg:text-left">
             {/* Badge */}
             <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 mb-6 animate-fade-in">
-              <span className="text-sm font-medium text-white">{t('hero.badge')}</span>
+              <span className="text-sm font-medium text-white">🌱 India's #1 Farming Super-App</span>
             </div>
 
             {/* Main Heading */}
             <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 animate-slide-up">
-              <span className="block">{t('hero.title')}</span>
+              <span className="block">AgriConnect</span>
               <span className="block text-3xl lg:text-4xl font-normal text-white/90 mt-2">
-                {t('hero.subtitle')}
+                Connecting Farmers to the Future
               </span>
             </h1>
 
             {/* Description */}
             <p className="text-xl text-white/90 mb-8 max-w-2xl animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              {t('hero.description')}
+              Bridge the gap between farmers and markets. Get the right price for your crops, 
+              access fertilizers directly, and fight inflation with our AI-powered platform.
             </p>
 
             {/* CTA Buttons */}
@@ -59,7 +57,7 @@ const HeroSection = ({ onOpenChat }: HeroSectionProps) => {
                 size="lg"
               >
                 <ShoppingCart className="w-5 h-5 mr-2" />
-                {t('hero.marketplace')}
+                Explore Marketplace
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
               
@@ -70,7 +68,7 @@ const HeroSection = ({ onOpenChat }: HeroSectionProps) => {
                 size="lg"
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
-                {t('hero.aiAssistant')}
+                Talk to AI Assistant
               </Button>
             </div>
 
@@ -78,15 +76,15 @@ const HeroSection = ({ onOpenChat }: HeroSectionProps) => {
             <div className="grid grid-cols-3 gap-6 mt-12 animate-fade-in" style={{ animationDelay: '0.6s' }}>
               <div className="text-center">
                 <div className="text-3xl font-bold text-white">200+</div>
-                <div className="text-sm text-white/70">{t('hero.features')}</div>
+                <div className="text-sm text-white/70">Features</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-white">10K+</div>
-                <div className="text-sm text-white/70">{t('hero.farmers')}</div>
+                <div className="text-sm text-white/70">Farmers</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-white">₹50Cr+</div>
-                <div className="text-sm text-white/70">{t('hero.transactions')}</div>
+                <div className="text-sm text-white/70">Transactions</div>
               </div>
             </div>
           </div>
@@ -95,17 +93,17 @@ const HeroSection = ({ onOpenChat }: HeroSectionProps) => {
           <div className="hidden lg:block relative">
             <div className="animate-float" style={{ animationDelay: '0.5s' }}>
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
-                <div className="text-white/90 text-sm mb-2">{t('hero.livePrice')}</div>
+                <div className="text-white/90 text-sm mb-2">Live Market Price</div>
                 <div className="text-white text-2xl font-bold">Tomato: ₹25/kg</div>
-                <div className="text-green-400 text-sm">↗ +12% {t('hero.priceChange')}</div>
+                <div className="text-green-400 text-sm">↗ +12% from last week</div>
               </div>
             </div>
 
             <div className="animate-float" style={{ animationDelay: '1s' }}>
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
-                <div className="text-white/90 text-sm mb-2">{t('hero.aiRec')}</div>
-                <div className="text-white text-lg">🌾 {t('hero.bestTime')}</div>
-                <div className="text-white/70 text-sm">{t('hero.highDemand')}</div>
+                <div className="text-white/90 text-sm mb-2">AI Recommendation</div>
+                <div className="text-white text-lg">🌾 Best time to sell wheat</div>
+                <div className="text-white/70 text-sm">High demand in Delhi NCR</div>
               </div>
             </div>
           </div>
