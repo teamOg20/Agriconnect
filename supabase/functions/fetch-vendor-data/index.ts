@@ -11,9 +11,9 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const GOOGLE_GEMINI_API_KEY = Deno.env.get("GOOGLE_GEMINI_API_KEY");
+    if (!GOOGLE_GEMINI_API_KEY) {
+      throw new Error("GOOGLE_GEMINI_API_KEY is not configured");
     }
 
     console.log("Fetching real vendor data using AI...");
@@ -31,27 +31,53 @@ For each vendor, provide:
 
 Return ONLY a JSON array of 24 vendor objects. Make the data realistic and diverse across different states, covering all major agricultural regions of India.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content: systemPrompt
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { 
+                  text: "Generate 24 realistic verified vendor entries for Indian agricultural marketplace covering diverse states and crop varieties"
+                }
+              ]
+            }
+          ],
+          systemInstruction: {
+            parts: [{ text: systemPrompt }]
           },
-          {
-            role: "user",
-            content: "Generate 24 realistic verified vendor entries for Indian agricultural marketplace covering diverse states and crop varieties"
+          generationConfig: {
+            temperature: 0.8,
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  location: { type: "string" },
+                  crops: { 
+                    type: "array",
+                    items: { type: "string" }
+                  },
+                  contact: { type: "string" },
+                  rating: { type: "number" },
+                  verified: { type: "boolean" },
+                  image: { type: "string" }
+                },
+                required: ["name", "location", "crops", "contact", "rating", "verified", "image"]
+              }
+            }
           }
-        ],
-        temperature: 0.8,
-      }),
-    });
+        }),
+      }
+    );
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -60,19 +86,19 @@ Return ONLY a JSON array of 24 vendor objects. Make the data realistic and diver
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
+      if (response.status === 403) {
         return new Response(
-          JSON.stringify({ error: "Payment required. Please add credits to your workspace." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ error: "Google Gemini API key invalid or quota exceeded." }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       const errorText = await response.text();
-      console.error("AI API error:", response.status, errorText);
-      throw new Error("Failed to fetch vendor data from AI");
+      console.error("Google Gemini API error:", response.status, errorText);
+      throw new Error("Failed to fetch vendor data from Google Gemini");
     }
 
     const data = await response.json();
-    const aiResponse = data.choices?.[0]?.message?.content;
+    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!aiResponse) {
       throw new Error("No response from AI");
@@ -80,17 +106,14 @@ Return ONLY a JSON array of 24 vendor objects. Make the data realistic and diver
 
     console.log("AI Response received:", aiResponse);
 
-    // Parse the JSON response from AI
+    // Parse the JSON response from Gemini (should already be valid JSON)
     let vendors;
     try {
-      // Try to extract JSON from markdown code blocks if present
-      const jsonMatch = aiResponse.match(/```json\n?([\s\S]*?)\n?```/) || 
-                       aiResponse.match(/```\n?([\s\S]*?)\n?```/);
-      const jsonString = jsonMatch ? jsonMatch[1] : aiResponse;
-      vendors = JSON.parse(jsonString.trim());
+      vendors = JSON.parse(aiResponse);
     } catch (parseError) {
-      console.error("Failed to parse AI response:", parseError);
-      throw new Error("Invalid JSON response from AI");
+      console.error("Failed to parse Gemini response:", parseError);
+      console.error("Raw response:", aiResponse);
+      throw new Error("Invalid JSON response from Gemini");
     }
 
     // Add IDs to vendors
