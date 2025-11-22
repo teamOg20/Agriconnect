@@ -194,6 +194,186 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       contact: "+91 88765 43210",
       image: "🍵",
       verified: true
+    },
+    {
+      id: 13,
+      name: "Kerala Spice Gardens",
+      location: "Kochi, Kerala",
+      rating: 4.7,
+      crops: ["Pepper", "Cardamom", "Cloves", "Nutmeg"],
+      contact: "+91 87654 32109",
+      image: "🌿",
+      verified: true
+    },
+    {
+      id: 14,
+      name: "Andhra Chili Growers",
+      location: "Guntur, Andhra Pradesh",
+      rating: 4.6,
+      crops: ["Red Chilies", "Cotton", "Tobacco", "Rice"],
+      contact: "+91 86543 21098",
+      image: "🌶️",
+      verified: true
+    },
+    {
+      id: 15,
+      name: "Telangana Rice Mills",
+      location: "Warangal, Telangana",
+      rating: 4.8,
+      crops: ["Rice", "Cotton", "Turmeric", "Maize"],
+      contact: "+91 85432 10987",
+      image: "🌾",
+      verified: true
+    },
+    {
+      id: 16,
+      name: "Odisha Vegetables Hub",
+      location: "Bhubaneswar, Odisha",
+      rating: 4.5,
+      crops: ["Tomatoes", "Brinjal", "Cabbage", "Cauliflower"],
+      contact: "+91 84321 09876",
+      image: "🍅",
+      verified: true
+    },
+    {
+      id: 17,
+      name: "Uttarakhand Organic Farms",
+      location: "Dehradun, Uttarakhand",
+      rating: 4.9,
+      crops: ["Millets", "Wheat", "Rice", "Pulses"],
+      contact: "+91 83210 98765",
+      image: "🌾",
+      verified: true
+    },
+    {
+      id: 18,
+      name: "Bihar Makhana Exports",
+      location: "Darbhanga, Bihar",
+      rating: 4.7,
+      crops: ["Makhana", "Rice", "Wheat", "Lentils"],
+      contact: "+91 82109 87654",
+      image: "🌰",
+      verified: true
+    },
+    {
+      id: 19,
+      name: "Jharkhand Tribal Produce",
+      location: "Ranchi, Jharkhand",
+      rating: 4.6,
+      crops: ["Rice", "Maize", "Pulses", "Vegetables"],
+      contact: "+91 81098 76543",
+      image: "🌾",
+      verified: true
+    },
+    {
+      id: 20,
+      name: "Chhattisgarh Forest Products",
+      location: "Raipur, Chhattisgarh",
+      rating: 4.5,
+      crops: ["Rice", "Maize", "Groundnuts", "Pulses"],
+      contact: "+91 80987 65432",
+      image: "🌱",
+      verified: true
+    },
+    {
+      id: 21,
+      name: "Meghalaya Ginger Co-op",
+      location: "Shillong, Meghalaya",
+      rating: 4.8,
+      crops: ["Ginger", "Turmeric", "Potatoes", "Pineapple"],
+      contact: "+91 79876 54321",
+      image: "🫚",
+      verified: true
+    },
+    {
+      id: 22,
+      name: "Sikkim Cardamom Growers",
+      location: "Gangtok, Sikkim",
+      rating: 4.9,
+      crops: ["Cardamom", "Ginger", "Turmeric", "Tea"],
+      contact: "+91 78765 43210",
+      image: "🌿",
+      verified: true
+    },
+    {
+      id: 23,
+      name: "Goa Cashew Producers",
+      location: "Panaji, Goa",
+      rating: 4.7,
+      crops: ["Cashew", "Coconut", "Rice", "Fruits"],
+      contact: "+91 77654 32109",
+      image: "🥜",
+      verified: true
+    },
+    {
+      id: 24,
+      name: "Manipur Organic Farmers",
+      location: "Imphal, Manipur",
+      rating: 4.6,
+      crops: ["Rice", "Pineapple", "Ginger", "Vegetables"],
+      contact: "+91 76543 21098",
+      image: "🍍",
+      verified: true
+    },
+    {
+      id: 25,
+      name: "Tripura Rubber & Agri",
+      location: "Agartala, Tripura",
+      rating: 4.5,
+      crops: ["Rubber", "Rice", "Pineapple", "Jackfruit"],
+      contact: "+91 75432 10987",
+      image: "🌱",
+      verified: true
+    },
+    {
+      id: 26,
+      name: "Nagaland Hill Crops",
+      location: "Kohima, Nagaland",
+      rating: 4.7,
+      crops: ["Rice", "Maize", "Millet", "Chili"],
+      contact: "+91 74321 09876",
+      image: "🌾",
+      verified: true
+    },
+    {
+      id: 27,
+      name: "Arunachal Valley Fruits",
+      location: "Itanagar, Arunachal Pradesh",
+      rating: 4.8,
+      crops: ["Kiwi", "Apples", "Oranges", "Rice"],
+      contact: "+91 73210 98765",
+      image: "🥝",
+      verified: true
+    },
+    {
+      id: 28,
+      name: "Mizoram Bamboo & Crops",
+      location: "Aizawl, Mizoram",
+      rating: 4.6,
+      crops: ["Rice", "Ginger", "Turmeric", "Vegetables"],
+      contact: "+91 72109 87654",
+      image: "🎋",
+      verified: true
+    },
+    {
+      id: 29,
+      name: "Jammu Apple Orchards",
+      location: "Jammu, J&K",
+      rating: 4.9,
+      crops: ["Apples", "Walnuts", "Almonds", "Saffron"],
+      contact: "+91 71098 76543",
+      image: "🍎",
+      verified: true
+    },
+    {
+      id: 30,
+      name: "Ladakh Apricot Farmers",
+      location: "Leh, Ladakh",
+      rating: 4.7,
+      crops: ["Apricots", "Apples", "Walnuts", "Barley"],
+      contact: "+91 70987 65432",
+      image: "🍑",
+      verified: true
     }
   ]);
   const { user } = useAuth();
