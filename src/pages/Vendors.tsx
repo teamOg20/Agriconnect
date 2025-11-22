@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Star, MapPin, Phone, Mail, Filter, Search, Verified, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -9,55 +9,34 @@ import { useAppContext } from '@/context/AppContext';
 import Navigation from '@/components/Navigation';
 import FloatingAIChat from '@/components/FloatingAIChat';
 import { useTranslation } from 'react-i18next';
+import { translateCrop, translateLocation, translateStatus } from '@/utils/translationHelpers';
 
 const Vendors = () => {
   const { vendors } = useAppContext();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedState, setSelectedState] = useState('All');
   const [selectedCrop, setSelectedCrop] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVendor, setSelectedVendor] = useState<number | null>(null);
+  const [, forceUpdate] = useState({});
+
+  // Force re-render when language changes
+  useEffect(() => {
+    const handleLanguageChange = () => {
+      forceUpdate({});
+    };
+    
+    window.addEventListener('languagechange', handleLanguageChange);
+    i18n.on('languageChanged', handleLanguageChange);
+    
+    return () => {
+      window.removeEventListener('languagechange', handleLanguageChange);
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, [i18n]);
 
   const states = ['All', 'Punjab', 'Haryana', 'Maharashtra', 'Madhya Pradesh', 'Karnataka', 'UP', 'Himachal', 'Rajasthan', 'Tamil Nadu'];
   const crops = ['All', 'Tomatoes', 'Rice', 'Wheat', 'Onions', 'Chilies', 'Potatoes', 'Soybeans', 'Pulses', 'Spices'];
-  
-  const getStateTranslation = (state: string) => {
-    const stateMap: Record<string, string> = {
-      'All': t('vendors.states.all'),
-      'Punjab': t('vendors.states.punjab'),
-      'Haryana': t('vendors.states.haryana'),
-      'Maharashtra': t('vendors.states.maharashtra'),
-      'Madhya Pradesh': t('vendors.states.madhyaPradesh'),
-      'Karnataka': t('vendors.states.karnataka'),
-      'UP': t('vendors.states.up'),
-      'Himachal': t('vendors.states.himachal'),
-      'Rajasthan': t('vendors.states.rajasthan'),
-      'Tamil Nadu': t('vendors.states.tamilNadu'),
-    };
-    return stateMap[state] || state;
-  };
-
-  const getCropTranslation = (crop: string) => {
-    const cropMap: Record<string, string> = {
-      'All': t('vendors.crops.all'),
-      'Tomatoes': t('vendors.crops.tomatoes'),
-      'Rice': t('vendors.crops.rice'),
-      'Wheat': t('vendors.crops.wheat'),
-      'Onions': t('vendors.crops.onions'),
-      'Chilies': t('vendors.crops.chilies'),
-      'Potatoes': t('vendors.crops.potatoes'),
-      'Soybeans': t('vendors.crops.soybeans'),
-      'Pulses': t('vendors.crops.pulses'),
-      'Spices': t('vendors.crops.spices'),
-      'Basmati Rice': t('vendors.crops.basmatiRice'),
-      'Maize': t('vendors.crops.maize'),
-      'Grapes': t('vendors.crops.grapes'),
-      'Pomegranate': t('vendors.crops.pomegranate'),
-      'Sugarcane': t('vendors.crops.sugarcane'),
-      'Mustard': t('vendors.crops.mustard'),
-    };
-    return cropMap[crop] || crop;
-  };
 
   const filteredVendors = vendors.filter(vendor => {
     const matchesState = selectedState === 'All' || vendor.location.includes(selectedState);
@@ -112,9 +91,9 @@ const Vendors = () => {
                 <SelectTrigger>
                   <SelectValue placeholder={t('vendors.selectState')} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white dark:bg-gray-800 z-50">
                   {states.map(state => (
-                    <SelectItem key={state} value={state}>{getStateTranslation(state)}</SelectItem>
+                    <SelectItem key={state} value={state}>{translateLocation(state)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -123,9 +102,9 @@ const Vendors = () => {
                 <SelectTrigger>
                   <SelectValue placeholder={t('vendors.selectCrop')} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white dark:bg-gray-800 z-50">
                   {crops.map(crop => (
-                    <SelectItem key={crop} value={crop}>{getCropTranslation(crop)}</SelectItem>
+                    <SelectItem key={crop} value={crop}>{translateCrop(crop)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -150,7 +129,7 @@ const Vendors = () => {
                         </h3>
                         <div className="flex items-center space-x-2 text-sm text-gray-600">
                           <MapPin className="w-4 h-4" />
-                          <span>{vendor.location}</span>
+                          <span>{translateLocation(vendor.location)}</span>
                         </div>
                       </div>
                     </div>
@@ -164,7 +143,7 @@ const Vendors = () => {
                     </div>
                     <span className="text-gray-300">•</span>
                     <Badge variant="secondary">
-                      {vendor.verified ? t('vendors.verified') : t('vendors.pending')}
+                      {translateStatus(vendor.verified ? 'Verified' : 'Pending')}
                     </Badge>
                   </div>
 
@@ -174,7 +153,7 @@ const Vendors = () => {
                     <div className="flex flex-wrap gap-2">
                       {vendor.crops.slice(0, 3).map((crop, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
-                          {getCropTranslation(crop)}
+                          {translateCrop(crop)}
                         </Badge>
                       ))}
                       {vendor.crops.length > 3 && (
@@ -220,9 +199,9 @@ const Vendors = () => {
                       <div className="space-y-2">
                         {vendor.crops.map((crop, index) => (
                           <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                            <span className="text-sm font-medium">{getCropTranslation(crop)}</span>
+                            <span className="text-sm font-medium">{translateCrop(crop)}</span>
                             <div className="text-right">
-                              <div className="text-sm font-semibold text-green-600">{t('vendors.available')}</div>
+                              <div className="text-sm font-semibold text-green-600">{translateStatus('Available')}</div>
                               <div className="text-xs text-gray-500">₹{20 + index * 5}/kg</div>
                             </div>
                           </div>
