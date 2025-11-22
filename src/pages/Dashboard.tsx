@@ -88,14 +88,13 @@ const Dashboard = () => {
   }, [user, authLoading, navigate]);
 
   const checkProfileCompletion = (profile: UserProfile) => {
+    // Don't redirect, just return completion status
     if (profile.user_type === 'farmer') {
       if (!profile.city || !profile.state || !profile.pincode || !profile.soil_type || !profile.major_crops || !profile.field_size || !profile.annual_income || !profile.credit_score) {
-        navigate('/profile-completion');
         return false;
       }
     } else if (profile.user_type === 'businessman') {
       if (!profile.city || !profile.state || !profile.pincode || !profile.annual_income || !profile.credit_score) {
-        navigate('/profile-completion');
         return false;
       }
     }
@@ -108,15 +107,55 @@ const Dashboard = () => {
         .from('users')
         .select('*')
         .eq('id', user?.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       
-      if (data && checkProfileCompletion(data)) {
+      // Show profile even if incomplete
+      if (data) {
         setProfile(data);
+      } else {
+        // If no profile exists in users table, create one from auth metadata
+        const newProfile: UserProfile = {
+          id: user?.id || '',
+          full_name: user?.user_metadata?.full_name || '',
+          email: user?.email || '',
+          phone: user?.user_metadata?.phone || '',
+          user_type: user?.user_metadata?.user_type || '',
+          created_at: new Date().toISOString(),
+          city: null,
+          state: null,
+          pincode: null,
+          soil_type: null,
+          major_crops: null,
+          field_size: null,
+          annual_income: null,
+          credit_score: null,
+        };
+        setProfile(newProfile);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      // Even on error, show basic profile from auth
+      if (user) {
+        const basicProfile: UserProfile = {
+          id: user.id,
+          full_name: user.user_metadata?.full_name || '',
+          email: user.email || '',
+          phone: user.user_metadata?.phone || '',
+          user_type: user.user_metadata?.user_type || '',
+          created_at: new Date().toISOString(),
+          city: null,
+          state: null,
+          pincode: null,
+          soil_type: null,
+          major_crops: null,
+          field_size: null,
+          annual_income: null,
+          credit_score: null,
+        };
+        setProfile(basicProfile);
+      }
     } finally {
       setLoading(false);
     }
@@ -135,14 +174,15 @@ const Dashboard = () => {
       <div className="min-h-screen">
         <Navigation />
         <div className="container mx-auto px-4 py-16 text-center">
-          <h1 className="text-2xl font-bold mb-4">Profile Not Found</h1>
-          <Button onClick={() => navigate('/')}>Go Home</Button>
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading profile...</p>
         </div>
       </div>
     );
   }
 
   const completionData = calculateProfileCompletion(profile);
+  const isIncomplete = completionData.percentage < 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
@@ -151,7 +191,23 @@ const Dashboard = () => {
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
             <h1 className="text-4xl font-bold mb-2">My Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back, {profile.full_name}!</p>
+            <p className="text-muted-foreground">Welcome back, {profile.full_name || 'User'}!</p>
+            {isIncomplete && (
+              <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <p className="text-sm text-yellow-700 dark:text-yellow-300 flex items-center gap-2">
+                  <XCircle className="w-4 h-4" />
+                  Your profile is incomplete. Complete it to unlock all features.
+                  <Button 
+                    onClick={() => navigate('/profile-completion')}
+                    size="sm"
+                    variant="outline"
+                    className="ml-2"
+                  >
+                    Complete Now
+                  </Button>
+                </p>
+              </div>
+            )}
           </div>
 
           <Card className="p-8 shadow-xl">
@@ -254,11 +310,15 @@ const Dashboard = () => {
                   </svg>
                   <div>
                     <span className="text-sm text-muted-foreground">Location: </span>
-                    <span className="font-medium">{profile.city}, {profile.state} - {profile.pincode}</span>
+                    <span className={`font-medium ${!profile.city ? 'text-muted-foreground italic' : ''}`}>
+                      {profile.city && profile.state && profile.pincode 
+                        ? `${profile.city}, ${profile.state} - ${profile.pincode}`
+                        : 'Not provided'}
+                    </span>
                   </div>
                 </div>
 
-                {profile.user_type === 'farmer' && profile.field_size && (
+                {profile.user_type === 'farmer' && (
                   <>
                     <div className="flex items-center gap-3">
                       <svg className="w-5 h-5 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -266,7 +326,9 @@ const Dashboard = () => {
                       </svg>
                       <div>
                         <span className="text-sm text-muted-foreground">Field Size: </span>
-                        <span className="font-medium">{profile.field_size}</span>
+                        <span className={`font-medium ${!profile.field_size ? 'text-muted-foreground italic' : ''}`}>
+                          {profile.field_size || 'Not provided'}
+                        </span>
                       </div>
                     </div>
 
@@ -276,7 +338,9 @@ const Dashboard = () => {
                       </svg>
                       <div>
                         <span className="text-sm text-muted-foreground">Soil Type: </span>
-                        <span className="font-medium">{profile.soil_type}</span>
+                        <span className={`font-medium ${!profile.soil_type ? 'text-muted-foreground italic' : ''}`}>
+                          {profile.soil_type || 'Not provided'}
+                        </span>
                       </div>
                     </div>
 
@@ -284,7 +348,11 @@ const Dashboard = () => {
                       <Sprout className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                       <div>
                         <span className="text-sm text-muted-foreground">Major Crops: </span>
-                        <span className="font-medium">{profile.major_crops?.join(', ')}</span>
+                        <span className={`font-medium ${!profile.major_crops || profile.major_crops.length === 0 ? 'text-muted-foreground italic' : ''}`}>
+                          {profile.major_crops && profile.major_crops.length > 0 
+                            ? profile.major_crops.join(', ') 
+                            : 'Not provided'}
+                        </span>
                       </div>
                     </div>
                   </>
@@ -296,12 +364,13 @@ const Dashboard = () => {
                   </svg>
                   <div>
                     <span className="text-sm text-muted-foreground">Annual Income: </span>
-                    <span className="font-medium">
+                    <span className={`font-medium ${!profile.annual_income ? 'text-muted-foreground italic' : ''}`}>
                       {profile.annual_income === 'less-than-25000' && 'Less than ₹25,000'}
                       {profile.annual_income === '25000-50000' && '₹25,000 - ₹50,000'}
                       {profile.annual_income === '50000-75000' && '₹50,000 - ₹75,000'}
                       {profile.annual_income === '75000-100000' && '₹75,000 - ₹1,00,000'}
                       {profile.annual_income === 'more-than-100000' && 'More than ₹1,00,000'}
+                      {!profile.annual_income && 'Not provided'}
                     </span>
                   </div>
                 </div>
@@ -312,7 +381,9 @@ const Dashboard = () => {
                   </svg>
                   <div>
                     <span className="text-sm text-muted-foreground">Credit Score: </span>
-                    <span className="font-medium">{profile.credit_score}/10</span>
+                    <span className={`font-medium ${!profile.credit_score ? 'text-muted-foreground italic' : ''}`}>
+                      {profile.credit_score ? `${profile.credit_score}/10` : 'Not provided'}
+                    </span>
                   </div>
                 </div>
               </div>
