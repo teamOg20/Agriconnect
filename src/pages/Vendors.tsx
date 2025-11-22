@@ -8,9 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAppContext } from '@/context/AppContext';
 import Navigation from '@/components/Navigation';
 import FloatingAIChat from '@/components/FloatingAIChat';
+import { useTranslation } from 'react-i18next';
 
 const Vendors = () => {
   const { vendors } = useAppContext();
+  const { t } = useTranslation();
   const [selectedState, setSelectedState] = useState('All');
   const [selectedCrop, setSelectedCrop] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,6 +20,44 @@ const Vendors = () => {
 
   const states = ['All', 'Punjab', 'Haryana', 'Maharashtra', 'Madhya Pradesh', 'Karnataka', 'UP', 'Himachal', 'Rajasthan', 'Tamil Nadu'];
   const crops = ['All', 'Tomatoes', 'Rice', 'Wheat', 'Onions', 'Chilies', 'Potatoes', 'Soybeans', 'Pulses', 'Spices'];
+  
+  const getStateTranslation = (state: string) => {
+    const stateMap: Record<string, string> = {
+      'All': t('vendors.states.all'),
+      'Punjab': t('vendors.states.punjab'),
+      'Haryana': t('vendors.states.haryana'),
+      'Maharashtra': t('vendors.states.maharashtra'),
+      'Madhya Pradesh': t('vendors.states.madhyaPradesh'),
+      'Karnataka': t('vendors.states.karnataka'),
+      'UP': t('vendors.states.up'),
+      'Himachal': t('vendors.states.himachal'),
+      'Rajasthan': t('vendors.states.rajasthan'),
+      'Tamil Nadu': t('vendors.states.tamilNadu'),
+    };
+    return stateMap[state] || state;
+  };
+
+  const getCropTranslation = (crop: string) => {
+    const cropMap: Record<string, string> = {
+      'All': t('vendors.crops.all'),
+      'Tomatoes': t('vendors.crops.tomatoes'),
+      'Rice': t('vendors.crops.rice'),
+      'Wheat': t('vendors.crops.wheat'),
+      'Onions': t('vendors.crops.onions'),
+      'Chilies': t('vendors.crops.chilies'),
+      'Potatoes': t('vendors.crops.potatoes'),
+      'Soybeans': t('vendors.crops.soybeans'),
+      'Pulses': t('vendors.crops.pulses'),
+      'Spices': t('vendors.crops.spices'),
+      'Basmati Rice': t('vendors.crops.basmatiRice'),
+      'Maize': t('vendors.crops.maize'),
+      'Grapes': t('vendors.crops.grapes'),
+      'Pomegranate': t('vendors.crops.pomegranate'),
+      'Sugarcane': t('vendors.crops.sugarcane'),
+      'Mustard': t('vendors.crops.mustard'),
+    };
+    return cropMap[crop] || crop;
+  };
 
   const filteredVendors = vendors.filter(vendor => {
     const matchesState = selectedState === 'All' || vendor.location.includes(selectedState);
@@ -46,10 +86,10 @@ const Vendors = () => {
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Verified Vendors
+              {t('vendors.title')}
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Connect directly with trusted farmers and suppliers across India
+              {t('vendors.description')}
             </p>
           </div>
 
@@ -60,7 +100,7 @@ const Vendors = () => {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <Input
-                    placeholder="Search vendors by name or location..."
+                    placeholder={t('vendors.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
@@ -70,22 +110,22 @@ const Vendors = () => {
               
               <Select value={selectedState} onValueChange={setSelectedState}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select State" />
+                  <SelectValue placeholder={t('vendors.selectState')} />
                 </SelectTrigger>
                 <SelectContent>
                   {states.map(state => (
-                    <SelectItem key={state} value={state}>{state}</SelectItem>
+                    <SelectItem key={state} value={state}>{getStateTranslation(state)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
               <Select value={selectedCrop} onValueChange={setSelectedCrop}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select Crop" />
+                  <SelectValue placeholder={t('vendors.selectCrop')} />
                 </SelectTrigger>
                 <SelectContent>
                   {crops.map(crop => (
-                    <SelectItem key={crop} value={crop}>{crop}</SelectItem>
+                    <SelectItem key={crop} value={crop}>{getCropTranslation(crop)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -124,22 +164,22 @@ const Vendors = () => {
                     </div>
                     <span className="text-gray-300">•</span>
                     <Badge variant="secondary">
-                      {vendor.verified ? 'Verified' : 'Pending'}
+                      {vendor.verified ? t('vendors.verified') : t('vendors.pending')}
                     </Badge>
                   </div>
 
                   {/* Crops Available */}
                   <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Crops Available:</h4>
+                    <h4 className="text-sm font-semibold text-gray-900 mb-2">{t('vendors.cropsAvailable')}</h4>
                     <div className="flex flex-wrap gap-2">
                       {vendor.crops.slice(0, 3).map((crop, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
-                          {crop}
+                          {getCropTranslation(crop)}
                         </Badge>
                       ))}
                       {vendor.crops.length > 3 && (
                         <Badge variant="outline" className="text-xs">
-                          +{vendor.crops.length - 3} more
+                          +{vendor.crops.length - 3} {t('vendors.more')}
                         </Badge>
                       )}
                     </div>
@@ -162,27 +202,27 @@ const Vendors = () => {
                       className="flex-1"
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
-                      Contact
+                      {t('vendors.contact')}
                     </Button>
                     <Button
                       size="sm"
                       onClick={() => viewInventory(vendor)}
                       className="btn-hero flex-1"
                     >
-                      View Inventory
+                      {t('vendors.viewInventory')}
                     </Button>
                   </div>
 
                   {/* Expanded Inventory */}
                   {selectedVendor === vendor.id && (
                     <div className="mt-4 pt-4 border-t">
-                      <h4 className="font-semibold text-gray-900 mb-3">Current Inventory</h4>
+                      <h4 className="font-semibold text-gray-900 mb-3">{t('vendors.currentInventory')}</h4>
                       <div className="space-y-2">
                         {vendor.crops.map((crop, index) => (
                           <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                            <span className="text-sm font-medium">{crop}</span>
+                            <span className="text-sm font-medium">{getCropTranslation(crop)}</span>
                             <div className="text-right">
-                              <div className="text-sm font-semibold text-green-600">Available</div>
+                              <div className="text-sm font-semibold text-green-600">{t('vendors.available')}</div>
                               <div className="text-xs text-gray-500">₹{20 + index * 5}/kg</div>
                             </div>
                           </div>
@@ -190,7 +230,7 @@ const Vendors = () => {
                       </div>
                       <div className="mt-3">
                         <Button className="w-full btn-success" size="sm">
-                          Place Bulk Order
+                          {t('vendors.placeBulkOrder')}
                         </Button>
                       </div>
                     </div>
@@ -203,8 +243,8 @@ const Vendors = () => {
           {filteredVendors.length === 0 && (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No vendors found</h3>
-              <p className="text-gray-600">Try adjusting your search criteria</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('vendors.noVendorsFound')}</h3>
+              <p className="text-gray-600">{t('vendors.adjustSearch')}</p>
             </div>
           )}
 
@@ -212,15 +252,15 @@ const Vendors = () => {
           <div className="mt-16 grid md:grid-cols-3 gap-8">
             <div className="text-center bg-white rounded-xl p-6 shadow-soft">
               <div className="text-3xl font-bold text-green-600 mb-2">{vendors.length}+</div>
-              <div className="text-gray-600">Verified Vendors</div>
+              <div className="text-gray-600">{t('vendors.verifiedVendors')}</div>
             </div>
             <div className="text-center bg-white rounded-xl p-6 shadow-soft">
               <div className="text-3xl font-bold text-blue-600 mb-2">15+</div>
-              <div className="text-gray-600">States Covered</div>
+              <div className="text-gray-600">{t('vendors.statesCovered')}</div>
             </div>
             <div className="text-center bg-white rounded-xl p-6 shadow-soft">
               <div className="text-3xl font-bold text-purple-600 mb-2">100+</div>
-              <div className="text-gray-600">Crop Varieties</div>
+              <div className="text-gray-600">{t('vendors.cropVarieties')}</div>
             </div>
           </div>
         </div>
