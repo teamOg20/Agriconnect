@@ -5,8 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import Navigation from '@/components/Navigation';
 import FloatingAIChat from '@/components/FloatingAIChat';
+import { useTranslation } from 'react-i18next';
 
 const About = () => {
+  const { t } = useTranslation();
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     alert('Thank you for your message! We will get back to you soon.');
@@ -22,10 +25,10 @@ const About = () => {
           {/* Header */}
           <div className="text-center mb-16">
             <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              About AgriConnect
+              {t('about.title')}
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Empowering farmers with technology to create a more sustainable and profitable agriculture ecosystem
+              {t('about.subtitle')}
             </p>
           </div>
 
