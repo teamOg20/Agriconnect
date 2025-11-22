@@ -379,6 +379,60 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const { user } = useAuth();
   const { toast } = useToast();
 
+  // Sample vendor data as fallback
+  const sampleVendors: Vendor[] = [
+    {
+      id: 1,
+      name: 'Green Valley Farms',
+      location: 'Punjab, India',
+      rating: 4.8,
+      crops: ['Wheat', 'Rice', 'Cotton'],
+      contact: '+91 98765 43210',
+      image: '🌾',
+      verified: true
+    },
+    {
+      id: 2,
+      name: 'Organic Harvest Co.',
+      location: 'Maharashtra, India',
+      rating: 4.6,
+      crops: ['Tomatoes', 'Onions', 'Potatoes'],
+      contact: '+91 98765 43211',
+      image: '🍅',
+      verified: true
+    },
+    {
+      id: 3,
+      name: 'Spice Traders Ltd.',
+      location: 'Kerala, India',
+      rating: 4.9,
+      crops: ['Turmeric', 'Cardamom', 'Black Pepper'],
+      contact: '+91 98765 43212',
+      image: '🌶️',
+      verified: true
+    },
+    {
+      id: 4,
+      name: 'Fresh Fruits Exporters',
+      location: 'Karnataka, India',
+      rating: 4.7,
+      crops: ['Mangoes', 'Bananas', 'Grapes'],
+      contact: '+91 98765 43213',
+      image: '🥭',
+      verified: true
+    },
+    {
+      id: 5,
+      name: 'Himalayan Growers',
+      location: 'Himachal Pradesh, India',
+      rating: 4.5,
+      crops: ['Apples', 'Cherries', 'Carrots'],
+      contact: '+91 98765 43214',
+      image: '🍎',
+      verified: true
+    }
+  ];
+
   // Load real vendor data from AI
   const loadVendors = async () => {
     try {
@@ -388,8 +442,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       if (error) {
         console.error('Error loading vendors:', error);
         
-        // Handle 402 payment error specifically
+        // Handle 402 payment error specifically - load sample data
         if (error.message?.includes('Payment required') || error.message?.includes('credits')) {
+          setVendors(sampleVendors);
           toast({
             title: "Using Sample Data",
             description: "AI-generated vendor data is unavailable. Showing sample vendors instead.",
@@ -398,8 +453,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           return;
         }
         
+        // Load sample data for any other error
+        setVendors(sampleVendors);
         toast({
-          title: "Info",
+          title: "Using Sample Data",
           description: "Using cached vendor data",
         });
         return;
@@ -408,9 +465,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       if (data?.vendors) {
         setVendors(data.vendors);
         console.log('Loaded real vendor data:', data.vendors.length, 'vendors');
+      } else {
+        // No data returned, use sample
+        setVendors(sampleVendors);
       }
     } catch (error: any) {
       console.error('Error loading vendors:', error);
+      setVendors(sampleVendors);
       toast({
         title: "Using Sample Data",
         description: "Unable to load real-time vendor data. Showing sample vendors.",
