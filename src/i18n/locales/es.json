@@ -1,0 +1,71 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "marketplace": "Mercado",
+    "orders": "Pedidos",
+    "orderHistory": "Historial de Pedidos",
+    "vendors": "Vendedores",
+    "fertilizerFriend": "Amigo Fertilizante",
+    "search": "Buscar",
+    "aboutUs": "Sobre Nosotros",
+    "bio": "Bio",
+    "signIn": "Iniciar Sesión",
+    "register": "Registrarse",
+    "logout": "Cerrar Sesión",
+    "admin": "Administrador"
+  },
+  "hero": {
+    "title": "Conectando Agricultores con Mercados",
+    "subtitle": "Cerrando la brecha entre agricultores rurales y mercados urbanos a través de la tecnología",
+    "cta": "Comenzar",
+    "learnMore": "Aprender Más"
+  },
+  "problem": {
+    "title": "El Desafío",
+    "description": "Los agricultores enfrentan dificultades para acceder a los mercados y obtener precios justos por sus productos"
+  },
+  "solution": {
+    "title": "Nuestra Solución",
+    "description": "AgriConnect proporciona una plataforma directa que conecta agricultores con compradores, asegurando precios justos y reduciendo intermediarios"
+  },
+  "features": {
+    "title": "Características",
+    "feature1": "Acceso Directo al Mercado",
+    "feature2": "Precios Justos",
+    "feature3": "Información con IA",
+    "feature4": "Actualizaciones en Tiempo Real"
+  },
+  "marketplace": {
+    "title": "Mercado",
+    "description": "Navega y compra productos frescos directamente de los agricultores"
+  },
+  "fertilizer": {
+    "title": "Amigo Fertilizante",
+    "description": "Obtén recomendaciones de fertilizantes con IA para tus cultivos"
+  },
+  "pricing": {
+    "title": "Planes de Precios",
+    "description": "Elige el plan que mejor funcione para ti"
+  },
+  "footer": {
+    "copyright": "© 2024 AgriConnect. Todos los derechos reservados.",
+    "aboutUs": "Sobre Nosotros",
+    "contact": "Contacto",
+    "privacy": "Política de Privacidad",
+    "terms": "Términos de Servicio"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Agregar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "viewAll": "Ver Todo"
+  }
+}
