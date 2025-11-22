@@ -125,7 +125,7 @@ const Register = () => {
           description: `Account created successfully! Welcome, ${formData.fullName}.`,
         });
         sessionStorage.removeItem('selectedUserType');
-        navigate('/');
+        navigate('/profile-completion');
       }
     } catch (error) {
       toast({

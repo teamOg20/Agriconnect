@@ -14,6 +14,10 @@ interface UserProfile {
   phone: string;
   user_type: string;
   created_at: string;
+  location: string | null;
+  soil_type: string | null;
+  major_crops: string[] | null;
+  field_size: string | null;
 }
 
 const Dashboard = () => {
@@ -33,6 +37,21 @@ const Dashboard = () => {
     }
   }, [user, authLoading, navigate]);
 
+  const checkProfileCompletion = (profile: UserProfile) => {
+    if (profile.user_type === 'farmer') {
+      if (!profile.location || !profile.soil_type || !profile.major_crops || !profile.field_size) {
+        navigate('/profile-completion');
+        return false;
+      }
+    } else if (profile.user_type === 'businessman') {
+      if (!profile.location) {
+        navigate('/profile-completion');
+        return false;
+      }
+    }
+    return true;
+  };
+
   const fetchProfile = async () => {
     try {
       const { data, error } = await supabase
@@ -42,7 +61,10 @@ const Dashboard = () => {
         .single();
 
       if (error) throw error;
-      setProfile(data);
+      
+      if (data && checkProfileCompletion(data)) {
+        setProfile(data);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
@@ -142,6 +164,53 @@ const Dashboard = () => {
                   </p>
                 </div>
               </div>
+
+              {profile.location && (
+                <div className="flex items-start space-x-4">
+                  <svg className="w-5 h-5 text-muted-foreground mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Location</p>
+                    <p className="font-semibold">{profile.location}</p>
+                  </div>
+                </div>
+              )}
+
+              {profile.user_type === 'farmer' && profile.soil_type && (
+                <div className="flex items-start space-x-4">
+                  <svg className="w-5 h-5 text-muted-foreground mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21h18M3 7v1a3 3 0 003 3h12a3 3 0 003-3V7m-18 0V5a2 2 0 012-2h14a2 2 0 012 2v2M3 7h18" />
+                  </svg>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Soil Type</p>
+                    <p className="font-semibold">{profile.soil_type}</p>
+                  </div>
+                </div>
+              )}
+
+              {profile.user_type === 'farmer' && profile.major_crops && (
+                <div className="flex items-start space-x-4">
+                  <Sprout className="w-5 h-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Major Crops</p>
+                    <p className="font-semibold">{profile.major_crops.join(', ')}</p>
+                  </div>
+                </div>
+              )}
+
+              {profile.user_type === 'farmer' && profile.field_size && (
+                <div className="flex items-start space-x-4">
+                  <svg className="w-5 h-5 text-muted-foreground mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                  </svg>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Field Size</p>
+                    <p className="font-semibold">{profile.field_size}</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="mt-8 pt-6 border-t flex gap-4">

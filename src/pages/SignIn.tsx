@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,7 +22,7 @@ const SignIn = () => {
   useEffect(() => {
     // Redirect if already logged in
     if (user) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [user, navigate]);
 
@@ -32,7 +33,32 @@ const SignIn = () => {
     const { error } = await signIn(formData.email, formData.password);
 
     if (!error) {
-      navigate('/');
+      // Wait a bit for the auth state to update
+      setTimeout(async () => {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        
+        if (currentUser) {
+          // Check if profile is complete
+          const { data: profileData } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', currentUser.id)
+            .single();
+
+          if (profileData) {
+            const isComplete = 
+              profileData.user_type === 'farmer'
+                ? profileData.location && profileData.soil_type && profileData.major_crops && profileData.field_size
+                : profileData.location;
+
+            navigate(isComplete ? '/dashboard' : '/profile-completion');
+          } else {
+            navigate('/');
+          }
+        } else {
+          navigate('/');
+        }
+      }, 100);
     }
 
     setLoading(false);
