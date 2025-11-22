@@ -19,14 +19,18 @@ const ProfileCompletion = () => {
   const [userType, setUserType] = useState<string>('');
   
   const [farmerData, setFarmerData] = useState({
-    location: '',
+    city: '',
+    state: '',
+    pincode: '',
     soil_type: '',
     major_crops: '',
     field_size: '',
   });
 
   const [businessmanData, setBusinessmanData] = useState({
-    location: '',
+    city: '',
+    state: '',
+    pincode: '',
   });
 
   useEffect(() => {
@@ -59,12 +63,12 @@ const ProfileCompletion = () => {
 
       // Check if profile is already complete
       if (data.user_type === 'farmer') {
-        if (data.location && data.soil_type && data.major_crops && data.field_size) {
+        if (data.city && data.state && data.pincode && data.soil_type && data.major_crops && data.field_size) {
           navigate('/dashboard');
           return;
         }
       } else if (data.user_type === 'businessman') {
-        if (data.location) {
+        if (data.city && data.state && data.pincode) {
           navigate('/dashboard');
           return;
         }
@@ -84,7 +88,7 @@ const ProfileCompletion = () => {
   const handleFarmerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!farmerData.location || !farmerData.soil_type || !farmerData.major_crops || !farmerData.field_size) {
+    if (!farmerData.city || !farmerData.state || !farmerData.pincode || !farmerData.soil_type || !farmerData.major_crops || !farmerData.field_size) {
       toast({
         title: 'Incomplete Form',
         description: 'Please fill in all fields',
@@ -101,7 +105,9 @@ const ProfileCompletion = () => {
       const { error } = await supabase
         .from('users')
         .update({
-          location: farmerData.location,
+          city: farmerData.city,
+          state: farmerData.state,
+          pincode: farmerData.pincode,
           soil_type: farmerData.soil_type,
           major_crops: cropsArray,
           field_size: farmerData.field_size,
@@ -131,7 +137,7 @@ const ProfileCompletion = () => {
   const handleBusinessmanSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!businessmanData.location) {
+    if (!businessmanData.city || !businessmanData.state || !businessmanData.pincode) {
       toast({
         title: 'Incomplete Form',
         description: 'Please fill in all fields',
@@ -146,7 +152,9 @@ const ProfileCompletion = () => {
       const { error } = await supabase
         .from('users')
         .update({
-          location: businessmanData.location,
+          city: businessmanData.city,
+          state: businessmanData.state,
+          pincode: businessmanData.pincode,
         })
         .eq('id', user?.id);
 
@@ -202,14 +210,42 @@ const ProfileCompletion = () => {
 
             {userType === 'farmer' ? (
               <form onSubmit={handleFarmerSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input
+                      id="city"
+                      type="text"
+                      placeholder="Enter city"
+                      value={farmerData.city}
+                      onChange={(e) => setFarmerData({ ...farmerData, city: e.target.value })}
+                      disabled={submitting}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="state">State</Label>
+                    <Input
+                      id="state"
+                      type="text"
+                      placeholder="Enter state"
+                      value={farmerData.state}
+                      onChange={(e) => setFarmerData({ ...farmerData, state: e.target.value })}
+                      disabled={submitting}
+                      required
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
+                  <Label htmlFor="pincode">Pincode</Label>
                   <Input
-                    id="location"
+                    id="pincode"
                     type="text"
-                    placeholder="City, State"
-                    value={farmerData.location}
-                    onChange={(e) => setFarmerData({ ...farmerData, location: e.target.value })}
+                    placeholder="Enter pincode"
+                    value={farmerData.pincode}
+                    onChange={(e) => setFarmerData({ ...farmerData, pincode: e.target.value })}
                     disabled={submitting}
                     required
                   />
@@ -268,14 +304,42 @@ const ProfileCompletion = () => {
               </form>
             ) : (
               <form onSubmit={handleBusinessmanSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input
+                      id="city"
+                      type="text"
+                      placeholder="Enter city"
+                      value={businessmanData.city}
+                      onChange={(e) => setBusinessmanData({ ...businessmanData, city: e.target.value })}
+                      disabled={submitting}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="state">State</Label>
+                    <Input
+                      id="state"
+                      type="text"
+                      placeholder="Enter state"
+                      value={businessmanData.state}
+                      onChange={(e) => setBusinessmanData({ ...businessmanData, state: e.target.value })}
+                      disabled={submitting}
+                      required
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="location">Business Location</Label>
+                  <Label htmlFor="pincode">Pincode</Label>
                   <Input
-                    id="location"
+                    id="pincode"
                     type="text"
-                    placeholder="City, State"
-                    value={businessmanData.location}
-                    onChange={(e) => setBusinessmanData({ ...businessmanData, location: e.target.value })}
+                    placeholder="Enter pincode"
+                    value={businessmanData.pincode}
+                    onChange={(e) => setBusinessmanData({ ...businessmanData, pincode: e.target.value })}
                     disabled={submitting}
                     required
                   />

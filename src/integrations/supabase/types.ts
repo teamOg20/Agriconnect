@@ -296,6 +296,7 @@ export type Database = {
       }
       users: {
         Row: {
+          city: string | null
           created_at: string
           email: string
           field_size: string | null
@@ -304,10 +305,13 @@ export type Database = {
           location: string | null
           major_crops: string[] | null
           phone: string
+          pincode: string | null
           soil_type: string | null
+          state: string | null
           user_type: string
         }
         Insert: {
+          city?: string | null
           created_at?: string
           email: string
           field_size?: string | null
@@ -316,10 +320,13 @@ export type Database = {
           location?: string | null
           major_crops?: string[] | null
           phone: string
+          pincode?: string | null
           soil_type?: string | null
+          state?: string | null
           user_type: string
         }
         Update: {
+          city?: string | null
           created_at?: string
           email?: string
           field_size?: string | null
@@ -328,7 +335,9 @@ export type Database = {
           location?: string | null
           major_crops?: string[] | null
           phone?: string
+          pincode?: string | null
           soil_type?: string | null
+          state?: string | null
           user_type?: string
         }
         Relationships: []

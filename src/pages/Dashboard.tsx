@@ -14,7 +14,9 @@ interface UserProfile {
   phone: string;
   user_type: string;
   created_at: string;
-  location: string | null;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
   soil_type: string | null;
   major_crops: string[] | null;
   field_size: string | null;
@@ -39,12 +41,12 @@ const Dashboard = () => {
 
   const checkProfileCompletion = (profile: UserProfile) => {
     if (profile.user_type === 'farmer') {
-      if (!profile.location || !profile.soil_type || !profile.major_crops || !profile.field_size) {
+      if (!profile.city || !profile.state || !profile.pincode || !profile.soil_type || !profile.major_crops || !profile.field_size) {
         navigate('/profile-completion');
         return false;
       }
     } else if (profile.user_type === 'businessman') {
-      if (!profile.location) {
+      if (!profile.city || !profile.state || !profile.pincode) {
         navigate('/profile-completion');
         return false;
       }
@@ -165,15 +167,39 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {profile.location && (
+              {profile.city && (
                 <div className="flex items-start space-x-4">
                   <svg className="w-5 h-5 text-muted-foreground mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   <div>
-                    <p className="text-sm text-muted-foreground">Location</p>
-                    <p className="font-semibold">{profile.location}</p>
+                    <p className="text-sm text-muted-foreground">City</p>
+                    <p className="font-semibold">{profile.city}</p>
+                  </div>
+                </div>
+              )}
+
+              {profile.state && (
+                <div className="flex items-start space-x-4">
+                  <svg className="w-5 h-5 text-muted-foreground mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p className="text-sm text-muted-foreground">State</p>
+                    <p className="font-semibold">{profile.state}</p>
+                  </div>
+                </div>
+              )}
+
+              {profile.pincode && (
+                <div className="flex items-start space-x-4">
+                  <svg className="w-5 h-5 text-muted-foreground mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Pincode</p>
+                    <p className="font-semibold">{profile.pincode}</p>
                   </div>
                 </div>
               )}
