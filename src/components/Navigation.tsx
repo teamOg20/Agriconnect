@@ -18,6 +18,7 @@ const Navigation = () => {
     { name: 'Fertilizer Friend', href: '/fertilizer' },
     { name: 'Search', href: '/search' },
     { name: 'About Us', href: '/about' },
+    { name: 'Bio', href: '/dashboard' },
   ];
 
   const handleNavigation = (href: string) => {
