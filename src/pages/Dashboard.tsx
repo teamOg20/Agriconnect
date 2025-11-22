@@ -4,7 +4,9 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, User, Mail, Phone, Calendar, Briefcase, Sprout } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, User, Mail, Phone, Calendar, Briefcase, Sprout, CheckCircle2, XCircle } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 
 interface UserProfile {
@@ -29,6 +31,50 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const calculateProfileCompletion = (profile: UserProfile) => {
+    const baseFields = [
+      { name: 'Full Name', value: profile.full_name, required: true },
+      { name: 'Email', value: profile.email, required: true },
+      { name: 'Phone', value: profile.phone, required: true },
+      { name: 'City', value: profile.city, required: true },
+      { name: 'State', value: profile.state, required: true },
+      { name: 'Pincode', value: profile.pincode, required: true },
+      { name: 'Annual Income', value: profile.annual_income, required: true },
+      { name: 'Credit Score', value: profile.credit_score, required: true },
+    ];
+
+    const farmerFields = [
+      { name: 'Soil Type', value: profile.soil_type, required: true },
+      { name: 'Major Crops', value: profile.major_crops, required: true },
+      { name: 'Field Size', value: profile.field_size, required: true },
+    ];
+
+    const allFields = profile.user_type === 'farmer' 
+      ? [...baseFields, ...farmerFields]
+      : baseFields;
+
+    const filledFields = allFields.filter(field => {
+      if (Array.isArray(field.value)) {
+        return field.value && field.value.length > 0;
+      }
+      return field.value && field.value.toString().trim() !== '';
+    });
+
+    const percentage = Math.round((filledFields.length / allFields.length) * 100);
+
+    return {
+      percentage,
+      totalFields: allFields.length,
+      filledFields: filledFields.length,
+      fields: allFields.map(field => ({
+        ...field,
+        filled: Array.isArray(field.value) 
+          ? field.value && field.value.length > 0
+          : field.value && field.value.toString().trim() !== ''
+      }))
+    };
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -96,6 +142,8 @@ const Dashboard = () => {
     );
   }
 
+  const completionData = calculateProfileCompletion(profile);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <Navigation />
@@ -115,6 +163,46 @@ const Dashboard = () => {
                 ) : (
                   <Briefcase className="w-8 h-8 text-primary" />
                 )}
+              </div>
+            </div>
+
+            {/* Profile Completion Progress */}
+            <div className="mb-8 p-6 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Profile Completion</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {completionData.filledFields} of {completionData.totalFields} fields completed
+                  </p>
+                </div>
+                <Badge 
+                  variant={completionData.percentage === 100 ? "default" : "secondary"}
+                  className="text-lg px-4 py-2"
+                >
+                  {completionData.percentage}%
+                </Badge>
+              </div>
+              
+              <Progress value={completionData.percentage} className="h-3 mb-4" />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                {completionData.fields.map((field, index) => (
+                  <div 
+                    key={index}
+                    className={`flex items-center gap-2 text-sm ${
+                      field.filled ? 'text-foreground' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {field.filled ? (
+                      <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    )}
+                    <span className={field.filled ? 'font-medium' : ''}>
+                      {field.name}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
 
